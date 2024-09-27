@@ -1,3 +1,5 @@
+import { isCancelablePromise } from '../../_shared';
+
 import {
   CancelablePromise,
   toCancelablePromise,
@@ -136,7 +138,7 @@ export const tryCatchPromise = <
   };
 
   try {
-    const isSourceCancelablePromise = source instanceof CancelablePromise;
+    const isSourceCancelablePromise = isCancelablePromise(source);
 
     // if the source is a CancelablePromise, just await it
     if (isSourceCancelablePromise) {
@@ -173,11 +175,8 @@ export const tryCatchPromise = <
       );
     }
 
-    const isCancelableResultCancelablePromise =
-      callbackResult instanceof CancelablePromise;
-
     // if the result of the callback is not a CancelablePromise, we need to convert it to one
-    promise = isCancelableResultCancelablePromise
+    promise = isCancelablePromise(callbackResult)
       ? callbackResult
       : toCancelablePromise(callbackResult);
 

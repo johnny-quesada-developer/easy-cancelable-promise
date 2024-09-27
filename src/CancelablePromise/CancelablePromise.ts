@@ -1,3 +1,4 @@
+import { promise_identifier } from '../_shared';
 import { CancelableAbortSignal } from './CancelableAbortController';
 import { toCancelablePromise } from './CancelablePromise.utils';
 
@@ -100,6 +101,10 @@ export type TCancelablePromiseGroupConfig = {
  * });
  */
 export class CancelablePromise<TResult = void> extends Promise<TResult> {
+  // the bundle applies polyfill and remove the prototype,
+  // we need this in order to be be able to identify if an object is a cancelable promise instance
+  protected [promise_identifier] = true;
+
   /**
    * The status of the promise.
    */
@@ -254,7 +259,8 @@ export class CancelablePromise<TResult = void> extends Promise<TResult> {
 
     this.status = 'canceled';
 
-    const _reason = reason === undefined ? new Error('Promise canceled') : reason;
+    const _reason =
+      reason === undefined ? new Error('Promise canceled') : reason;
 
     // the own promise cancel callbacks are called first
     this.ownCancelCallbacks.forEach((callback) => callback(_reason));
@@ -454,8 +460,8 @@ export class CancelablePromise<TResult = void> extends Promise<TResult> {
             promise,
           );
 
-          onCancel(() => {
-            cancelable.cancel();
+          onCancel((reason) => {
+            cancelable.cancel(reason);
           });
 
           cancelable.then(resolve, (reason) => {
@@ -497,8 +503,8 @@ export class CancelablePromise<TResult = void> extends Promise<TResult> {
 
           results.set(cancelable, null);
 
-          onCancel(() => {
-            cancelable.cancel();
+          onCancel((reason) => {
+            cancelable.cancel(reason);
           });
 
           cancelable.then(
@@ -558,8 +564,8 @@ export class CancelablePromise<TResult = void> extends Promise<TResult> {
 
         results.set(cancelable, null);
 
-        onCancel(() => {
-          cancelable.cancel();
+        onCancel((reason) => {
+          cancelable.cancel(reason);
         });
 
         cancelable
@@ -597,5 +603,3 @@ export class CancelablePromise<TResult = void> extends Promise<TResult> {
  * The constructor of the cancelable promise should be the same as the Promise constructor
  */
 CancelablePromise.prototype.constructor = Promise;
-
-

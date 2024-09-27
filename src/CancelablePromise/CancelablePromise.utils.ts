@@ -1,3 +1,4 @@
+import { isCancelablePromise } from '../_shared';
 import { tryCatchPromise, TTryCatchPromiseResult } from '../utils';
 
 import {
@@ -72,7 +73,7 @@ export const toCancelablePromise = <
 >(
   source: T,
 ): CancelablePromise<TResult> => {
-  if (source instanceof CancelablePromise) return source;
+  if (isCancelablePromise(source)) return source as CancelablePromise<TResult>;
   if (typeof source === 'function') return toCancelablePromise(source());
 
   if (!isPromise(source)) {
@@ -169,8 +170,8 @@ export const groupAsCancelablePromise = <TResult extends Array<unknown>>(
         const promise = toCancelablePromise(result);
 
         // we cancel the promise if the group promise is canceled
-        const unsubscribeCancel = promiseUtils.onCancel(() => {
-          promise.cancel();
+        const unsubscribeCancel = promiseUtils.onCancel((reason) => {
+          promise.cancel(reason);
         });
 
         promise.then((result) => {
