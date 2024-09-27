@@ -42,12 +42,12 @@
   },
   "repository": {
     "type": "git",
-    "url": "git@github.com:johnny-quesada-developer/cancelable-promise-jq.git"
+    "url": "git@github.com:johnny-quesada-developer/easy-cancelable-promise.git"
   },
   "bugs": {
-    "url": "https://github.com/johnny-quesada-developer/cancelable-promise-jq/issues"
+    "url": "https://github.com/johnny-quesada-developer/easy-cancelable-promise/issues"
   },
-  "homepage": "https://github.com/johnny-quesada-developer/cancelable-promise-jq#readme",
+  "homepage": "https://github.com/johnny-quesada-developer/easy-cancelable-promise#readme",
   "keywords": [
     "promises",
     "web",
