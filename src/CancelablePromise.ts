@@ -1,77 +1,17 @@
-import { promise_identifier } from '../_shared';
-import { CancelableAbortSignal } from './CancelableAbortController';
-import { toCancelablePromise } from './CancelablePromise.utils';
+import type {
+  Subscription,
+  TCancelCallback,
+  TCancelablePromiseCallback,
+  TOnProgressCallback,
+  TPromiseStatus,
+  TRejectCallback,
+  TResolveCallback,
+  TSubscriptionParams,
+} from 'types';
 
-export type PromiseCanceledResult = {
-  status: 'canceled';
-  reason?: unknown;
-};
-
-export type TPromiseSettledResult<T> =
-  | PromiseFulfilledResult<T>
-  | PromiseRejectedResult
-  | PromiseCanceledResult;
-
-export type TPromiseStatus = 'canceled' | 'pending' | 'resolved' | 'rejected';
-
-export type TResolveCallback<TResult> = (
-  value?: TResult | PromiseLike<TResult>,
-) => void;
-
-export type TRejectCallback = (reason?: unknown) => void;
-
-export type TCancelCallback = (reason?: unknown) => void;
-
-export type TSubscriptionParams = {
-  signal?: CancelableAbortSignal;
-};
-
-export type Subscription = () => void;
-
-export type TCancelablePromiseUtils<TResult = unknown> = {
-  cancel: (reason?: unknown) => CancelablePromise<TResult>;
-  onCancel: (callback: TCancelCallback) => Subscription;
-  onProgress: (callback: TOnProgressCallback) => Subscription;
-  reportProgress: (percentage: number, metadata?: unknown) => void;
-};
-
-export type TCancelablePromiseCallback<TResult = unknown> = (
-  resolve: TResolveCallback<TResult>,
-  reject: TRejectCallback,
-  utils: TCancelablePromiseUtils<TResult>,
-) => void;
-
-/**
- * Callback for the reportProgress event of the promise.
- */
-export type TOnProgressCallback = (
-  progress: number,
-  metadata?: unknown,
-) => void;
-
-export type TCancelablePromiseBuildCallback<T = unknown> = () =>
-  | Promise<T>
-  | CancelablePromise<T>;
-
-export type TCancelablePromiseData = Record<string, unknown> & {
-  group?: {
-    promises: CancelablePromise[];
-  };
-};
-
-export type TDecoupledCancelablePromise<TResult = unknown> = {
-  promise: CancelablePromise<TResult>;
-  resolve: TResolveCallback<TResult>;
-  reject: TRejectCallback;
-} & TCancelablePromiseUtils<TResult>;
-
-export type TCancelablePromiseGroupConfig = {
-  maxConcurrent?: number;
-  executeInOrder?: boolean;
-  beforeEachCallback?: () => void;
-  afterEachCallback?: (result: unknown) => void;
-  onQueueEmptyCallback?: (result: unknown[] | null) => void;
-};
+import { isCancelableAbortSignal } from './isCancelableAbortSignal';
+import { isCancelablePromise, promise_identifier } from './isCancelablePromise';
+import { isPromise } from './isPromise';
 
 /**
  * CancelablePromise is a Promise that can be canceled.
@@ -285,9 +225,15 @@ export class CancelablePromise<TResult = void> extends Promise<TResult> {
   ): CancelablePromise<TResult> => {
     this.cancelCallbacks.add(callback);
 
-    signal?.subscribe(() => {
-      this.cancelCallbacks.delete(callback);
-    });
+    if (isCancelableAbortSignal(signal)) {
+      signal.subscribe(() => {
+        this.cancelCallbacks.delete(callback);
+      });
+    } else {
+      signal?.addEventListener('abort', () => {
+        this.cancelCallbacks.delete(callback);
+      });
+    }
 
     return this;
   };
@@ -301,9 +247,15 @@ export class CancelablePromise<TResult = void> extends Promise<TResult> {
   ): CancelablePromise<TResult> => {
     this.onProgressCallbacks.add(callback);
 
-    signal?.subscribe(() => {
-      this.onProgressCallbacks.delete(callback);
-    });
+    if (isCancelableAbortSignal(signal)) {
+      signal.subscribe(() => {
+        this.onProgressCallbacks.delete(callback);
+      });
+    } else {
+      signal?.addEventListener('abort', () => {
+        this.onProgressCallbacks.delete(callback);
+      });
+    }
 
     return this;
   };
@@ -603,3 +555,59 @@ export class CancelablePromise<TResult = void> extends Promise<TResult> {
  * The constructor of the cancelable promise should be the same as the Promise constructor
  */
 CancelablePromise.prototype.constructor = Promise;
+
+/**
+ * Convert a value to a CancelablePromise, the value can be a Promise/CancellablePromise or a value.
+ * @param {unknown} source the value to convert
+ * @returns {TCancelablePromise<T>} the CancelablePromise
+ * @example
+ * const promise = new Promise((resolve) => {
+ * setTimeout(() => {
+ * resolve('hello world');
+ * }, 1000);
+ * });
+ * const cancelablePromise = toCancelablePromise(promise);
+ * cancelablePromise.onCancel(() => {
+ * console.log('promise canceled');
+ * });
+ * cancelablePromise.cancel();
+ * // promise canceled
+ * */
+export const toCancelablePromise = <
+  T = unknown,
+  TResult = T extends Promise<unknown>
+    ? CancelablePromise<Awaited<T>>
+    : CancelablePromise<T>,
+>(
+  source: T,
+): CancelablePromise<TResult> => {
+  if (isCancelablePromise(source)) return source as CancelablePromise<TResult>;
+  if (typeof source === 'function') return toCancelablePromise(source());
+
+  if (!isPromise(source)) {
+    return new CancelablePromise<TResult>((resolve) =>
+      resolve(source as unknown as TResult),
+    );
+  }
+
+  let resolve: TResolveCallback<TResult>;
+  let reject: TRejectCallback;
+
+  const cancelable = new CancelablePromise<TResult>(
+    (_resolve, _reject, _utils) => {
+      resolve = _resolve;
+      reject = _reject;
+
+      source.then(
+        resolve as (value: unknown) => void | PromiseLike<void>,
+        reject,
+      );
+    },
+  );
+
+  cancelable.onCancel((reason) => {
+    reject(reason);
+  });
+
+  return cancelable;
+};

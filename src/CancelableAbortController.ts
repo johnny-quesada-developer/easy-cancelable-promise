@@ -20,10 +20,13 @@ interface AddEventListenerOptions extends EventListenerOptions {
 export type TRemoveEventListener = () => void;
 
 export interface CancelableAbortSignal extends AbortSignal {
+  __is_cancelable_abort_signal: true;
+
   subscribe(
     listener: EventListener | EventListenerObject,
     options?: AddEventListenerOptions | boolean,
   ): TRemoveEventListener;
+
   subscribe(
     type: string,
     listener: EventListener | EventListenerObject,
@@ -43,6 +46,7 @@ export class CancelableAbortController extends AbortController {
   constructor() {
     super();
 
+    this.signal.__is_cancelable_abort_signal = true;
     this.signal.subscribe = (...args: unknown[]) => {
       if (!this._subscriptions) {
         throw new Error('AbortController was already aborted or disposed.');

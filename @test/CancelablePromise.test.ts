@@ -1,5 +1,5 @@
 import { CancelablePromise } from '../src/CancelablePromise';
-import { CancelableAbortController } from '../src/CancelablePromise/CancelableAbortController';
+import { CancelableAbortController } from '../src/CancelableAbortController';
 
 describe('CancelablePromise', () => {
   it('should create a CancelablePromise', () => {
