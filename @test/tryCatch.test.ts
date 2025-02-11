@@ -1,5 +1,6 @@
 import { CancelablePromise } from '../src/CancelablePromise';
-import { tryCatch, tryCatchPromise } from '../src/utils';
+import { tryCatch } from '../src/tryCatch';
+import { tryCatchPromise } from '../src/tryCatchPromise';
 
 describe('tryCatch', () => {
   beforeEach(() => {

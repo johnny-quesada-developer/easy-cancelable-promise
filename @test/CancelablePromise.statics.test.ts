@@ -190,11 +190,10 @@ describe('CancelablePromise Static Methods', () => {
         }),
       ]);
 
-      const results = await promise as PromiseRejectedResult[];
+      const results = (await promise) as PromiseRejectedResult[];
 
-    
-      expect(results.map(x => x.status)).toEqual(['canceled', 'canceled']);
-      expect(results.map(x => x.reason)).toEqual(['canceled1', 'canceled2']);
+      expect(results.map((x) => x.status)).toEqual(['canceled', 'canceled']);
+      expect(results.map((x) => x.reason)).toEqual(['canceled1', 'canceled2']);
       expect(promise.status).toBe('resolved');
     });
 
