@@ -1,4 +1,4 @@
-import type { CancelableAbortSignal } from 'CancelableAbortController';
+import type { CancelableAbortSignal } from './CancelableAbortController';
 import type { CancelablePromise } from './CancelablePromise';
 
 export type TExceptionHandlingType = 'error' | 'warn' | 'ignore';

@@ -7,7 +7,7 @@ import type {
   TRejectCallback,
   TResolveCallback,
   TSubscriptionParams,
-} from 'types';
+} from './types';
 
 import { isCancelableAbortSignal } from './isCancelableAbortSignal';
 import { isCancelablePromise, promise_identifier } from './isCancelablePromise';

@@ -1,7 +1,7 @@
 import type {
   TTryCatchCallbackPromiseConfig,
   TTryCatchPromiseResult,
-} from 'types';
+} from './types';
 
 import type { CancelablePromise } from './CancelablePromise';
 

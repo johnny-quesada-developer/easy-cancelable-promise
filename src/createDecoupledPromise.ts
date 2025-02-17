@@ -2,7 +2,7 @@ import type {
   TCancelablePromiseUtils,
   TRejectCallback,
   TResolveCallback,
-} from 'types';
+} from './types';
 
 import { CancelablePromise } from './CancelablePromise';
 

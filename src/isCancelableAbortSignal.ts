@@ -1,4 +1,4 @@
-import type { CancelableAbortSignal } from 'CancelableAbortController';
+import type { CancelableAbortSignal } from './CancelableAbortController';
 
 export const isCancelableAbortSignal = (
   value: CancelableAbortSignal | AbortSignal,
