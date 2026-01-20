@@ -93,3 +93,5 @@ export class CancelableAbortController extends AbortController {
     this._subscriptions = null;
   }
 }
+
+export default CancelableAbortController;

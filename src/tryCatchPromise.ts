@@ -152,3 +152,5 @@ export const tryCatchPromise = <
     });
   }
 };
+
+export default tryCatchPromise;

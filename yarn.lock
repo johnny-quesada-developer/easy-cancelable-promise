@@ -1603,6 +1603,11 @@ argparse@^1.0.7:
   dependencies:
     sprintf-js "~1.0.2"
 
+async@~0.2.9:
+  version "0.2.10"
+  resolved "https://registry.yarnpkg.com/async/-/async-0.2.10.tgz#b6bbe0b0674b9d719708ca38de8c237cb526c3d1"
+  integrity sha512-eAkdoKxU6/LkKDBzLpT+t6Ff5EtfSF4wx1WfJiPEEV7WNLnDaRXk0oVysiEPm262roaachGexwUv94WhSgN5TQ==
+
 babel-jest@^29.5.0:
   version "29.5.0"
   resolved "https://registry.npmjs.org/babel-jest/-/babel-jest-29.5.0.tgz"
@@ -1786,6 +1791,13 @@ char-regex@^1.0.2:
   resolved "https://registry.npmjs.org/char-regex/-/char-regex-1.0.2.tgz"
   integrity sha512-kWWXztvZ5SBQV+eRgKFeh8q5sLuZY2+8WUIzlxWVTg+oGwY14qylx1KbKzHd8P6ZYkAg0xyIDU9JMHhyJMZ1jw==
 
+checker@~0.5.1:
+  version "0.5.2"
+  resolved "https://registry.yarnpkg.com/checker/-/checker-0.5.2.tgz#c27a36bf00f3a7a3d24a8fbc7853f06fce4e9c86"
+  integrity sha512-ZhdzqPQs4emts6ArAWN2d8MfqORGWlplfVX05aLg2jZzPbu7XGB5GQ/GnSsSICQ2yuwKt+CpVSMk0AO5dQuAJQ==
+  dependencies:
+    async "~0.2.9"
+
 chrome-trace-event@^1.0.2:
   version "1.0.3"
   resolved "https://registry.npmjs.org/chrome-trace-event/-/chrome-trace-event-1.0.3.tgz"
@@ -1800,6 +1812,14 @@ cjs-module-lexer@^1.0.0:
   version "1.2.2"
   resolved "https://registry.npmjs.org/cjs-module-lexer/-/cjs-module-lexer-1.2.2.tgz"
   integrity sha512-cOU9usZw8/dXIXKtwa8pM0OTJQuJkxMN6w30csNRUerHfeQ5R6U3kkU/FtJeIf3M202OHfY2U8ccInBG7/xogA==
+
+"clean@find . -maxdepth 1 -type f \\( -name '*.js' -o -name '*.d.ts' \\) ! -name 'webpack.config.js' -exec rm {} +":
+  version "1.1.4"
+  resolved "https://registry.yarnpkg.com/clean/-/clean-1.1.4.tgz#5fe3f1d48a22842316eba0a19c51f26428015c80"
+  integrity sha512-Bk4IXn4WM9sx4AXJes70Yg1l50uaSlodsnhpxVSqPNzavEsX0vT6V2PtYKqcN5YgeK+cDi7MQ3EoxOKYTiSo1g==
+  dependencies:
+    checker "~0.5.1"
+    minimist "~0.0.5"
 
 cliui@^8.0.1:
   version "8.0.1"
@@ -2838,6 +2858,11 @@ minimatch@^3.0.4, minimatch@^3.1.1:
   integrity sha512-J7p63hRiAjw1NDEww1W7i37+ByIrOWO5XQQAzZ3VOcL0PNybwpfmV/N05zFAzwQ9USyEcX6t3UO+K5aqBQOIHw==
   dependencies:
     brace-expansion "^1.1.7"
+
+minimist@~0.0.5:
+  version "0.0.10"
+  resolved "https://registry.yarnpkg.com/minimist/-/minimist-0.0.10.tgz#de3f98543dbf96082be48ad1a0c7cda836301dcf"
+  integrity sha512-iotkTvxc+TwOm5Ieim8VnSNvCDjCK9S8G3scJ50ZthspSxa7jx50jkhYduuAtAjvfDUwSgOwf8+If99AlOEhyw==
 
 ms@2.1.2:
   version "2.1.2"

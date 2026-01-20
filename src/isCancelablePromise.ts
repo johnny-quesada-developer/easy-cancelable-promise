@@ -7,3 +7,5 @@ export const isCancelablePromise = <TResult>(
 ): source is CancelablePromise<TResult> => {
   return !!source?.[promise_identifier];
 };
+
+export default isCancelablePromise;

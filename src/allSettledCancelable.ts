@@ -47,3 +47,5 @@ export const allSettledCancelable = <T extends readonly unknown[] | []>(
     resolve(result as any);
   });
 };
+
+export default allSettledCancelable;

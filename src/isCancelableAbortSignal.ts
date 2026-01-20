@@ -7,3 +7,5 @@ export const isCancelableAbortSignal = (
     (value as CancelableAbortSignal)?.__is_cancelable_abort_signal,
   );
 };
+
+export default isCancelableAbortSignal;

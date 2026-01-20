@@ -6,7 +6,11 @@ export type {
 } from './CancelableAbortController';
 export { CancelableAbortController } from './CancelableAbortController';
 
-export { CancelablePromise, toCancelablePromise } from './CancelablePromise';
+export {
+  CancelablePromise,
+  toCancelablePromise,
+  default,
+} from './CancelablePromise';
 
 export { createDecoupledPromise } from './createDecoupledPromise';
 export type { TDecoupledCancelablePromise } from './createDecoupledPromise';
@@ -21,8 +25,6 @@ export { isCancelableAbortSignal } from './isCancelableAbortSignal';
 export { isCancelablePromise } from './isCancelablePromise';
 export { isPromise } from './isPromise';
 
-// export { toCancelablePromise } from './toCancelablePromise';
-export { tryCatch } from './tryCatch';
 export { tryCatchPromise } from './tryCatchPromise';
 
 export type {
@@ -30,11 +32,9 @@ export type {
   Subscription,
   TCancelCallback,
   TCancelablePromiseCallback,
-  TCancelablePromiseData,
   TCancelablePromiseUtils,
   TExceptionHandlingType,
   TOnProgressCallback,
-  TPromiseSettledResult,
   TPromiseStatus,
   TRejectCallback,
   TResolveCallback,

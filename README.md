@@ -330,49 +330,7 @@ console.log(isPromise(value)); // false
 
 This will print true for the promise variable and false for the value variable, as the promise variable is a Promise and the value variable is a string.
 
-## tryCatch
-
-Attempts to execute a callback and catch any errors that may occur during its execution.
-
-### Parameters
-
-#### **callback**: The callback to be executed.
-
-#### **config** (optional): An object containing configuration options for the execution.
-
-#### Configuration Options
-
-#### **config.defaultResult** (optional): The default result to be returned if the callback throws an error. Defaults to null.
-
-#### **config.exceptionHandlingType** (optional): The type of log to be used when an error occurs. Possible values are 'error', 'warn', and 'ignore'. Defaults to 'error'.
-
-### Returns
-
-An object with the following properties:
-
-#### **error**: The error that occurred during the execution of the callback, or null if no error occurred.
-
-#### **result**: The result of the callback, or the default result if an error occurred.
-
-### Example:
-
-```ts
-import { tryCatch } from 'easy-cancelable-promise';
-
-const { error, result } = tryCatch(() => {
-  throw new Error('Error');
-});
-
-console.log(error); // Error: Error
-console.log(result); // null
-
-const { error, result } = tryCatch(() => {
-  return 'result';
-});
-
-console.log(error); // null
-console.log(result); // result
-```
+````
 
 ## tryCatchPromise
 
@@ -411,7 +369,7 @@ const { error, result, promise } = await tryCatchPromise(async () => {
 console.log(error); // Error: Error
 console.log(result); // null
 console.log(promise.status); // canceled
-```
+````
 
 # Contributing
 

@@ -32,11 +32,6 @@ export type PromiseCanceledResult = {
   reason?: unknown;
 };
 
-export type TPromiseSettledResult<T> =
-  | PromiseFulfilledResult<T>
-  | PromiseRejectedResult
-  | PromiseCanceledResult;
-
 export type TPromiseStatus = 'canceled' | 'pending' | 'resolved' | 'rejected';
 
 export type TResolveCallback<TResult> = (
@@ -73,9 +68,3 @@ export type TOnProgressCallback = (
   progress: number,
   metadata?: unknown,
 ) => void;
-
-export type TCancelablePromiseData = Record<string, unknown> & {
-  group?: {
-    promises: CancelablePromise[];
-  };
-};

@@ -114,3 +114,5 @@ export const groupAsCancelablePromise = <TResult extends Array<unknown>>(
     });
   });
 };
+
+export default groupAsCancelablePromise;

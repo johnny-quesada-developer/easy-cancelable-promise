@@ -32,6 +32,11 @@
       "require": "./createDecoupledPromise.js",
       "types": "./createDecoupledPromise.d.ts"
     },
+    "./defer": {
+      "import": "./createDecoupledPromise.js",
+      "require": "./createDecoupledPromise.js",
+      "types": "./createDecoupledPromise.d.ts"
+    },
     "./groupAsCancelablePromise": {
       "import": "./groupAsCancelablePromise.js",
       "require": "./groupAsCancelablePromise.js",
@@ -56,11 +61,6 @@
       "import": "./toCancelablePromise.js",
       "require": "./toCancelablePromise.js",
       "types": "./toCancelablePromise.d.ts"
-    },
-    "./tryCatch": {
-      "import": "./tryCatch.js",
-      "require": "./tryCatch.js",
-      "types": "./tryCatch.d.ts"
     },
     "./tryCatchPromise": {
       "import": "./tryCatchPromise.js",

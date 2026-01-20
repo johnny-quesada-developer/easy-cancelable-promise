@@ -1,4 +1,4 @@
-import { CancelablePromise } from '../src/CancelablePromise';
+import { CancelablePromise } from '../';
 
 describe('CancelablePromise Static Methods', () => {
   describe('CancelablePromise.all', () => {

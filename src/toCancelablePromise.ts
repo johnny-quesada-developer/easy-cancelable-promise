@@ -1,1 +1,1 @@
-export { toCancelablePromise } from './CancelablePromise';
+export { toCancelablePromise, default } from './CancelablePromise';

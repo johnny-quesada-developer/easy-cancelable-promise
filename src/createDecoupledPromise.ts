@@ -13,6 +13,7 @@ export type TDecoupledCancelablePromise<TResult = unknown> = {
 } & TCancelablePromiseUtils<TResult>;
 
 /**
+ * @deprecated Use `defer` instead.
  * Create a decoupled promise.
  * @param {TCreateCancelablePromiseConfig} [callback] the callback of the promise
  * @returns {TDecoupledCancelablePromise} the decoupled promise
@@ -48,3 +49,17 @@ export const createDecoupledPromise = <
 
   return { resolve, reject, ...utils, promise };
 };
+
+/**
+ *  Creates a deferred CancelablePromise with separate resolve and reject functions.
+ *
+ * @example
+ * const deferred = defer<string>();
+ *
+ * deferred.promise // A CancelablePromise<string>
+ * deferred.resolve('Success!'); // Resolves the promise
+ * deferred.reject(new Error('Failure!')); // Rejects the promise
+ */
+export const defer = createDecoupledPromise;
+
+export default createDecoupledPromise;

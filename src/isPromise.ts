@@ -6,3 +6,5 @@
 export const isPromise = <T>(value: unknown): value is Promise<T> => {
   return Promise.resolve(value) === value;
 };
+
+export default isPromise;
