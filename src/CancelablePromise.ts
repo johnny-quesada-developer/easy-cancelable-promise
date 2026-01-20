@@ -1,85 +1,95 @@
 import type {
   Subscription,
-  TCancelCallback,
-  TCancelablePromiseCallback,
-  TOnProgressCallback,
-  TPromiseStatus,
-  TRejectCallback,
-  TResolveCallback,
-  TSubscriptionParams,
+  CancelCallback,
+  CancelablePromiseCallback,
+  OnProgressCallback,
+  PromiseStatus,
+  RejectCallback,
+  ResolveCallback,
+  SubscriptionParams,
 } from './types';
 
-import { isCancelableAbortSignal } from './isCancelableAbortSignal';
-import { isCancelablePromise, promise_identifier } from './isCancelablePromise';
-import { isPromise } from './isPromise';
+import isCancelableAbortSignal from './isCancelableAbortSignal';
+import isCancelablePromise, { promise_identifier } from './isCancelablePromise';
+import isPromise from './isPromise';
 
 /**
- * CancelablePromise is a Promise that can be canceled.
- * It is a Promise that has a status property that can be 'pending', 'resolved', 'rejected' or 'canceled'.
- * It has an onCancel method that allows to register a callback that will be called when the promise is canceled.
- * It has a cancel method that allows to cancel the promise.
- * @param {TCancelablePromiseCallback<TResult>} [callback] the callback of the promise, it will receive the resolve, reject and cancel functions
- * @constructor
- * @example
- * const promise = new CancelablePromise((resolve, reject, utils) => {
- *   resolve('resolved');
- * });
+ * A Promise that can be canceled with lifecycle and progress tracking.
  *
- * promise.then((value) => {
- *  console.log(value); // 'resolved'
- * });
+ * CancelablePromise extends the native Promise with additional capabilities:
+ * - Cancellation support via `cancel()` method
+ * - Status tracking: 'pending', 'resolved', 'rejected', or 'canceled'
+ * - Progress reporting through `reportProgress()` and `onProgress()`
+ * - Event subscription for cancellation via `onCancel()`
+ *
+ * @template TResult - The type of value the promise resolves to
  *
  * @example
- * const promise = new CancelablePromise((resolve, reject, utils) => {
- *  utils.cancel('canceled');
+ * ```ts
+ * const promise = new CancelablePromise((resolve, reject, { onCancel, reportProgress }) => {
+ *   const timeoutId = setTimeout(() => resolve('Done!'), 5000);
+ *
+ *   onCancel(() => {
+ *     clearTimeout(timeoutId);
+ *     console.log('Canceled!');
+ *   });
+ *
+ *   // Report progress
+ *   reportProgress(50);
  * });
  *
- * promise.catch((reason) => {
- * console.log(reason); // 'canceled'
- * console.log(promise.status); // 'canceled'
+ * promise
+ *   .then(console.log)
+ *   .onProgress((progress) => console.log(`${progress}% complete`))
+ *   .onCancel((reason) => console.log('Canceled:', reason));
+ *
+ * // Cancel after 1 second
+ * setTimeout(() => promise.cancel('User canceled'), 1000);
+ * ```
+ *
+ * @example
+ * ```ts
+ * // Canceling from within the executor
+ * const promise = new CancelablePromise((resolve, reject, { cancel }) => {
+ *   // Some condition triggers cancellation
+ *   if (shouldCancel) {
+ *     cancel('Canceled internally');
+ *     return;
+ *   }
+ *   resolve('Success');
  * });
+ * ```
  */
 export class CancelablePromise<TResult = void> extends Promise<TResult> {
-  // the bundle applies polyfill and remove the prototype,
-  // we need this in order to be be able to identify if an object is a cancelable promise instance
+  // Internal identifier used to distinguish CancelablePromise from regular Promise
+  // Required because bundlers may polyfill the prototype
   protected [promise_identifier] = true;
 
   /**
-   * The status of the promise.
+   * The current status of the promise.
    */
-  public status: TPromiseStatus = 'pending';
+  public status: PromiseStatus = 'pending';
 
-  private cancelCallbacks: Set<TCancelCallback> = new Set();
-  private ownCancelCallbacks: Set<TCancelCallback> = new Set();
+  private cancelCallbacks: Set<CancelCallback> = new Set();
+  private ownCancelCallbacks: Set<CancelCallback> = new Set();
 
-  /**
-   * The callbacks to be called when reportProgress is called.
-   */
-  private onProgressCallbacks: Set<TOnProgressCallback> = new Set();
+  private onProgressCallbacks: Set<OnProgressCallback> = new Set();
 
+  // Cleanup all callback sets
   private disposeCallbacks() {
     this.cancelCallbacks = new Set();
     this.ownCancelCallbacks = new Set();
     this.onProgressCallbacks = new Set();
   }
 
-  /**
-   * Resolve the promise.
-   * @param {TResult} [value] the value of the resolution
-   * */
-  private _resolve: TResolveCallback<TResult>;
+  private _resolve: ResolveCallback<TResult>;
+  private _reject: RejectCallback;
 
-  /**
-   * Cancel the promise.
-   * @param {unknown} [reason] the reason of the cancellation
-   * */
-  private _reject: TRejectCallback;
+  constructor(callback: CancelablePromiseCallback<TResult>) {
+    let resolve: ResolveCallback<TResult>;
+    let reject: RejectCallback;
 
-  constructor(callback: TCancelablePromiseCallback<TResult>) {
-    let resolve: TResolveCallback<TResult>;
-    let reject: TRejectCallback;
-
-    // extract the original Promise callbacks
+    // Extract the original Promise callbacks
     super((_resolve, _reject) => {
       resolve = _resolve;
       reject = _reject;
@@ -88,7 +98,7 @@ export class CancelablePromise<TResult = void> extends Promise<TResult> {
     this._resolve = resolve;
     this._reject = reject;
 
-    // execute the custom callback with cancelable functions
+    // Execute the custom callback with cancelable utilities
     callback(
       (value) => {
         this.status = 'resolved';
@@ -119,13 +129,20 @@ export class CancelablePromise<TResult = void> extends Promise<TResult> {
         reportProgress: (percentage, metadata) => {
           this.reportProgress(percentage, metadata);
         },
+        status: () => {
+          return this.status;
+        },
+        isCanceled: () => {
+          return this.status === 'canceled';
+        },
+        isPending: () => {
+          return this.status === 'pending';
+        },
       },
     );
 
-    /**
-     * Override the then method to return a CancelablePromise.
-     * We need to override this here to avoid the bundler to polyfill the Promise.
-     */
+    // Override the then method to return a CancelablePromise.
+    // We need to override this here to avoid the bundler to polyfill the Promise.
     this.then = <TResult1 = TResult, TResult2 = never>(
       onfulfilled?:
         | ((value: TResult) => TResult1 | PromiseLike<TResult1>)
@@ -145,12 +162,10 @@ export class CancelablePromise<TResult = void> extends Promise<TResult> {
       return promise;
     };
 
-    /**
-     * Override the catch method to return a CancelablePromise.
-     * We need to override this here to avoid the bundler to polyfill the Promise.
-     * */
+    // Override the catch method to return a CancelablePromise.
+    // We need to override this here to avoid the bundler to polyfill the Promise.
     this.catch = <T = unknown>(
-      onrejected?: (reason: any) => T | PromiseLike<T>,
+      onrejected?: (reason: unknown) => T | PromiseLike<T>,
     ): CancelablePromise<T | TResult> => {
       const { promise, resolve, reject } = this.createChildPromise<
         T | TResult
@@ -161,9 +176,7 @@ export class CancelablePromise<TResult = void> extends Promise<TResult> {
       return promise;
     };
 
-    /**
-     * Override the finally method to return a CancelablePromise.
-     */
+    // Override the finally method to return a CancelablePromise.
     this.finally = (onfinally?: () => void): CancelablePromise<TResult> => {
       const { promise, resolve, reject } = this.createChildPromise<TResult>();
 
@@ -173,11 +186,9 @@ export class CancelablePromise<TResult = void> extends Promise<TResult> {
     };
   }
 
-  /**
-   * Subscribe to the cancel event of the promise.
-   * @param {TCancelCallback} callback the callback to be called when the promise is canceled
-   * */
-  private subscribeToOwnCancelEvent(callback: TCancelCallback): Subscription {
+  // Subscribe to the cancel event of the promise.
+  // @param {CancelCallback} callback the callback to be called when the promise is canceled
+  private subscribeToOwnCancelEvent(callback: CancelCallback): Subscription {
     this.ownCancelCallbacks.add(callback);
 
     return () => {
@@ -213,12 +224,12 @@ export class CancelablePromise<TResult = void> extends Promise<TResult> {
 
   /**
    * Subscribe to the cancel event of the promise.
-   * @param {TCancellablePromiseCallback} [callback] the callback to be called when the promise is canceled
+   * @param {CancelCallback} [callback] the callback to be called when the promise is canceled
    * @returns {CancelablePromise} the promise itself
    * */
   public onCancel(
-    callback: TCancelCallback,
-    { signal }: TSubscriptionParams = {},
+    callback: CancelCallback,
+    { signal }: SubscriptionParams = {},
   ): CancelablePromise<TResult> {
     this.cancelCallbacks.add(callback);
 
@@ -239,8 +250,8 @@ export class CancelablePromise<TResult = void> extends Promise<TResult> {
    * This method allows to report the progress across the chain of promises.
    * */
   public onProgress(
-    callback: TOnProgressCallback,
-    { signal }: TSubscriptionParams = {},
+    callback: OnProgressCallback,
+    { signal }: SubscriptionParams = {},
   ): CancelablePromise<TResult> {
     this.onProgressCallbacks.add(callback);
 
@@ -269,17 +280,15 @@ export class CancelablePromise<TResult = void> extends Promise<TResult> {
     return this;
   }
 
-  /**
-   * Returns a Promise that resolves or rejects as soon as the previous promise is resolved or rejected,
-   * with cancelable promise you can call the cancel method on the child promise to cancel all the parent promises.
-   * inherits the onProgressCallbacks array from the parent promise to the child promise so the progress can be reported across the chain
-   */
+  // Returns a Promise that resolves or rejects as soon as the previous promise is resolved or rejected,
+  // with cancelable promise you can call the cancel method on the child promise to cancel all the parent promises.
+  // inherits the onProgressCallbacks array from the parent promise to the child promise so the progress can be reported across the chain
   private createChildPromise<TResult1>() {
-    let resolve: TResolveCallback<TResult1>;
-    let reject: TRejectCallback;
+    let resolve: ResolveCallback<TResult1>;
+    let reject: RejectCallback;
 
     const promise = new CancelablePromise<TResult1>(
-      (_resolve, _reject, _utils) => {
+      (_resolve, _reject) => {
         resolve = _resolve;
         reject = _reject;
       },
@@ -352,7 +361,7 @@ export class CancelablePromise<TResult = void> extends Promise<TResult> {
    * childPromise.cancel();
    * */
   public catch: <T = unknown>(
-    onrejected?: (reason: any) => T | PromiseLike<T>,
+    onrejected?: (reason: unknown) => T | PromiseLike<T>,
   ) => CancelablePromise<TResult | T>;
 
   /**
@@ -587,11 +596,11 @@ export const toCancelablePromise = <
     );
   }
 
-  let resolve: TResolveCallback<TResult>;
-  let reject: TRejectCallback;
+  let resolve: ResolveCallback<TResult>;
+  let reject: RejectCallback;
 
   const cancelable = new CancelablePromise<TResult>(
-    (_resolve, _reject, _utils) => {
+    (_resolve, _reject) => {
       resolve = _resolve;
       reject = _reject;
 

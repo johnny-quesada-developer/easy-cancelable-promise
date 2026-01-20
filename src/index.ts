@@ -1,7 +1,5 @@
-export { allSettledCancelable } from './allSettledCancelable';
-
 export type {
-  TRemoveEventListener,
+  RemoveEventListener,
   CancelableAbortSignal,
 } from './CancelableAbortController';
 export { CancelableAbortController } from './CancelableAbortController';
@@ -12,35 +10,27 @@ export {
   default,
 } from './CancelablePromise';
 
-export { createDecoupledPromise } from './createDecoupledPromise';
-export type { TDecoupledCancelablePromise } from './createDecoupledPromise';
+export { defer } from './defer';
+export type { DeferredPromise } from './defer';
 
 export { groupAsCancelablePromise } from './groupAsCancelablePromise';
 export type {
-  TCancelablePromiseGroupConfig,
-  TCancelablePromiseBuildCallback,
+  CancelablePromiseGroupConfig,
+  CancelablePromiseBuildCallback,
 } from './groupAsCancelablePromise';
 
 export { isCancelableAbortSignal } from './isCancelableAbortSignal';
 export { isCancelablePromise } from './isCancelablePromise';
 export { isPromise } from './isPromise';
 
-export { tryCatchPromise } from './tryCatchPromise';
-
 export type {
-  PromiseCanceledResult,
   Subscription,
-  TCancelCallback,
-  TCancelablePromiseCallback,
-  TCancelablePromiseUtils,
-  TExceptionHandlingType,
-  TOnProgressCallback,
-  TPromiseStatus,
-  TRejectCallback,
-  TResolveCallback,
-  TSubscriptionParams,
-  TTryCatchCallbackConfig,
-  TTryCatchCallbackPromiseConfig,
-  TTryCatchPromiseResult,
-  TTryCatchResult,
+  CancelCallback,
+  CancelablePromiseCallback,
+  CancelablePromiseUtils,
+  OnProgressCallback,
+  PromiseStatus,
+  RejectCallback,
+  ResolveCallback,
+  SubscriptionParams,
 } from './types';

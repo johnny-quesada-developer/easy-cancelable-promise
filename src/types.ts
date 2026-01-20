@@ -1,70 +1,53 @@
 import type { CancelableAbortSignal } from './CancelableAbortController';
 import type { CancelablePromise } from './CancelablePromise';
 
-export type TExceptionHandlingType = 'error' | 'warn' | 'ignore';
+// Status of a CancelablePromise.
+export type PromiseStatus = 'canceled' | 'pending' | 'resolved' | 'rejected';
 
-export type TTryCatchCallbackConfig<TResult = unknown> = {
-  exceptionHandlingType?: TExceptionHandlingType;
-  defaultResult?: Partial<TResult> | null;
-};
-
-export type TTryCatchCallbackPromiseConfig<TResult = unknown> =
-  TTryCatchCallbackConfig<TResult> & {
-    ignoreCancel?: boolean;
-  };
-
-export type TTryCatchResult<TResult = unknown, TError = unknown> = {
-  error: TError;
-  result: TResult;
-};
-
-export type TTryCatchPromiseResult<
-  TResult = unknown,
-  TError = unknown,
-> = Promise<
-  TTryCatchResult<TResult, TError> & {
-    promise?: CancelablePromise<TResult>;
-  }
->;
-
-export type PromiseCanceledResult = {
-  status: 'canceled';
-  reason?: unknown;
-};
-
-export type TPromiseStatus = 'canceled' | 'pending' | 'resolved' | 'rejected';
-
-export type TResolveCallback<TResult> = (
+// Callback to resolve a promise.
+export type ResolveCallback<TResult> = (
   value?: TResult | PromiseLike<TResult>,
 ) => void;
 
-export type TRejectCallback = (reason?: unknown) => void;
+// Callback to reject a promise.
+export type RejectCallback = (reason?: unknown) => void;
 
-export type TCancelCallback = (reason?: unknown) => void;
+// Callback invoked when a promise is canceled.
+export type CancelCallback = (reason?: unknown) => void;
 
-export type TSubscriptionParams = {
+/** Parameters for event subscriptions with optional AbortSignal. */
+export type SubscriptionParams = {
+  // Optional AbortSignal to automatically cleanup subscriptions
   signal?: CancelableAbortSignal | AbortSignal;
 };
 
+// Function to unsubscribe from an event.
 export type Subscription = () => void;
 
-export type TCancelablePromiseUtils<TResult = unknown> = {
+// Utility functions for CancelablePromise cancellation and progress.
+export type CancelablePromiseUtils<TResult = unknown> = {
+  /** Cancel the promise with an optional reason */
   cancel: (reason?: unknown) => CancelablePromise<TResult>;
-  onCancel: (callback: TCancelCallback) => Subscription;
-  onProgress: (callback: TOnProgressCallback) => Subscription;
+  /** Subscribe to cancellation events */
+  onCancel: (callback: CancelCallback) => Subscription;
+  // Subscribe to progress update events
+  onProgress: (callback: OnProgressCallback) => Subscription;
+  // Report progress percentage with optional metadata
   reportProgress: (percentage: number, metadata?: unknown) => void;
+  // Get the current promise status
+  status: () => PromiseStatus;
+  // Check if the promise is canceled
+  isCanceled: () => boolean;
+  // Check if the promise is pending
+  isPending: () => boolean;
 };
 
-export type TCancelablePromiseCallback<TResult = unknown> = (
-  resolve: TResolveCallback<TResult>,
-  reject: TRejectCallback,
-  utils: TCancelablePromiseUtils<TResult>,
+// Executor function for creating a CancelablePromise.
+export type CancelablePromiseCallback<TResult = unknown> = (
+  resolve: ResolveCallback<TResult>,
+  reject: RejectCallback,
+  utils: CancelablePromiseUtils<TResult>,
 ) => void;
 
-/**
- * Callback for the reportProgress event of the promise.
- */
-export type TOnProgressCallback = (
-  progress: number,
-  metadata?: unknown,
-) => void;
+// Callback for progress reporting.
+export type OnProgressCallback = (progress: number, metadata?: unknown) => void;

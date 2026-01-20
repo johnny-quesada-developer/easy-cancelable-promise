@@ -5,17 +5,14 @@ module.exports = {
   mode: 'production',
   entry: {
     bundle: './src/index.ts',
-    allSettledCancelable: './src/allSettledCancelable.ts',
     CancelableAbortController: './src/CancelableAbortController.ts',
     CancelablePromise: './src/CancelablePromise.ts',
-    createDecoupledPromise: './src/createDecoupledPromise.ts',
+    defer: './src/defer.ts',
     groupAsCancelablePromise: './src/groupAsCancelablePromise.ts',
     isCancelableAbortSignal: './src/isCancelableAbortSignal.ts',
     isCancelablePromise: './src/isCancelablePromise.ts',
     isPromise: './src/isPromise.ts',
     toCancelablePromise: './src/toCancelablePromise.ts',
-    tryCatch: './src/tryCatch.ts',
-    tryCatchPromise: './src/tryCatchPromise.ts',
     types: './src/types.ts',
   },
   output: {
@@ -51,6 +48,20 @@ module.exports = {
       new TerserPlugin({
         extractComments: false,
         terserOptions: {
+          compress: {
+            passes: 5,
+            drop_debugger: true,
+            keep_fargs: false,
+            keep_infinity: true,
+            reduce_funcs: true,
+            reduce_vars: true,
+            keep_fnames: false,
+            toplevel: true,
+          },
+          mangle: {
+            toplevel: true,
+            properties: false,
+          },
           format: {
             comments: false,
           },
