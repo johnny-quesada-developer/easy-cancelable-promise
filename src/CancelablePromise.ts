@@ -287,12 +287,10 @@ export class CancelablePromise<TResult = void> extends Promise<TResult> {
     let resolve: ResolveCallback<TResult1>;
     let reject: RejectCallback;
 
-    const promise = new CancelablePromise<TResult1>(
-      (_resolve, _reject) => {
-        resolve = _resolve;
-        reject = _reject;
-      },
-    );
+    const promise = new CancelablePromise<TResult1>((_resolve, _reject) => {
+      resolve = _resolve;
+      reject = _reject;
+    });
 
     // share the reference of the onProgressCallbacks array between the promises so the progress can be reported
     promise.onProgressCallbacks = this.onProgressCallbacks;
@@ -599,17 +597,15 @@ export const toCancelablePromise = <
   let resolve: ResolveCallback<TResult>;
   let reject: RejectCallback;
 
-  const cancelable = new CancelablePromise<TResult>(
-    (_resolve, _reject) => {
-      resolve = _resolve;
-      reject = _reject;
+  const cancelable = new CancelablePromise<TResult>((_resolve, _reject) => {
+    resolve = _resolve;
+    reject = _reject;
 
-      source.then(
-        resolve as (value: unknown) => void | PromiseLike<void>,
-        reject,
-      );
-    },
-  );
+    source.then(
+      resolve as (value: unknown) => void | PromiseLike<void>,
+      reject,
+    );
+  });
 
   cancelable.onCancel((reason) => {
     reject(reason);
