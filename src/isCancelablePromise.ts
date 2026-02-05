@@ -6,10 +6,10 @@ export const promise_identifier = Symbol('promise_identifier');
 /**
  * Checks if a value is a CancelablePromise.
  */
-export const isCancelablePromise = <TResult>(
+export function isCancelablePromise<TResult>(
   source: unknown,
-): source is CancelablePromise<TResult> => {
+): source is CancelablePromise<TResult> {
   return !!source?.[promise_identifier];
-};
+}
 
 export default isCancelablePromise;

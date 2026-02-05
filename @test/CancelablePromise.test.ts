@@ -303,4 +303,43 @@ describe('CancelablePromise', () => {
 
     expect(callsLogger).toBeCalledTimes(1);
   });
+
+  it('should not had unhandled rejection if the promise is canceled', () => {
+    new CancelablePromise(() => {}).cancel();
+  });
+
+  it('Still should reject the promise if the promise is canceled with a reason', () => {
+    expect.assertions(3);
+
+    const promise = new CancelablePromise(() => {});
+
+    promise.catch((reason) => {
+      expect(reason).toBeInstanceOf(Error);
+      expect((reason as Error).message).toBe('Promise canceled');
+      expect(promise.status).toBe('canceled');
+    });
+
+    void promise.cancel();
+  });
+
+  it('Still should reject the promise if the promise is canceled with a reason and the rejection is handled after canceling', async () => {
+    expect.assertions(3);
+
+    const promise = new CancelablePromise(() => {});
+
+    const caught = new Promise<void>((resolve) => {
+      promise.catch(async (reason) => {
+        await new Promise((resolve) => setTimeout(resolve, 10));
+
+        expect(reason).toBeInstanceOf(Error);
+        expect((reason as Error).message).toBe('Promise canceled');
+        expect(promise.status).toBe('canceled');
+        resolve();
+      });
+    });
+
+    promise.cancel();
+
+    await caught;
+  });
 });

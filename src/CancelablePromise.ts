@@ -216,7 +216,9 @@ export class CancelablePromise<TResult = void> extends Promise<TResult> {
     // then the promise cancel second level subscribers
     this.cancelCallbacks.forEach((callback) => callback(_reason));
 
+    this.catch(() => {}); // avoid unhandled promise rejection
     this._reject(_reason);
+
     this.disposeCallbacks();
 
     return this;

@@ -50,6 +50,7 @@ module.exports = {
         terserOptions: {
           compress: {
             passes: 5,
+            drop_console: true,
             drop_debugger: true,
             keep_fargs: false,
             keep_infinity: true,
