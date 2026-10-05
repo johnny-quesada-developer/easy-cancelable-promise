@@ -2,6 +2,7 @@ import { example as useIt } from './getting-started/use-it';
 import { example as progressExample, upload } from './getting-started/progress';
 import { statuses } from './cancelable-promise/status';
 import { chain as chaining } from './cancelable-promise/chaining';
+import { chainDown } from './cancelable-promise/chain-down';
 import { settleOnce } from './cancelable-promise/settle-once';
 import { executorThrows } from './cancelable-promise/executor-throws';
 import { listen as listenToCancel } from './cancel/on-cancel-outside';
@@ -67,6 +68,10 @@ describe('documentation snippets', () => {
 
       expect(result).toMatchObject({ source: 'canceled', doubled: 'canceled', text: 'canceled', stopped: true });
       expect(await result.last).toBe('Not needed');
+    });
+
+    it('cancels the promises chained from a canceled promise', async () => {
+      expect(await chainDown()).toEqual(['canceled', 'canceled', 'resolved', 0]);
     });
 
     it('settles once', async () => {
@@ -211,7 +216,7 @@ describe('documentation snippets', () => {
     it('calls the callbacks of the configuration', async () => {
       expect(await groupConfig()).toEqual({
         results: ['a', 'b', 'c'],
-        events: ['starting', 'starting', 'finished a', 'finished b', 'starting', 'finished c', 'done: a,b,c'],
+        events: ['starting 0', 'starting 1', 'finished 0: a', 'finished 1: b', 'starting 2', 'finished 2: c', 'done: a,b,c'],
       });
     });
 

@@ -39,8 +39,12 @@ describe('groupAsCancelablePromise', () => {
       { beforeEachCallback, afterEachCallback, onQueueEmptyCallback },
     );
 
-    expect(beforeEachCallback).toHaveBeenCalledTimes(2);
-    expect(afterEachCallback.mock.calls).toEqual([[1], [2]]);
+    // each callback receives the position of its source
+    expect(beforeEachCallback.mock.calls).toEqual([[0], [1]]);
+    expect(afterEachCallback.mock.calls).toEqual([
+      [1, 0],
+      [2, 1],
+    ]);
     expect(onQueueEmptyCallback).toHaveBeenCalledTimes(1);
     expect(onQueueEmptyCallback).toHaveBeenCalledWith(results);
   });
@@ -234,7 +238,7 @@ describe('groupAsCancelablePromise', () => {
     expect(group.status).toBe('canceled');
     expect(pending.status).toBe('canceled');
     expect(cancelLogger).toHaveBeenCalledWith('reason');
-    expect(afterEachCallback.mock.calls).toEqual([['done']]);
+    expect(afterEachCallback.mock.calls).toEqual([['done', 0]]);
     expect(neverStarted).not.toHaveBeenCalled();
   });
 

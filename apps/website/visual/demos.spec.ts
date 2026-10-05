@@ -185,9 +185,13 @@ test.describe('search', () => {
     const errors = collectErrors(page);
 
     await page.goto('docs/');
-    await page.getByRole('button', { name: 'Search documentation' }).click();
-
     const dialog = page.getByRole('dialog', { name: /search/i });
+
+    // the dialog is an island: a click that arrives before it hydrates opens nothing, so try until it opens
+    await expect(async () => {
+      await page.getByRole('button', { name: 'Search documentation' }).click();
+      await expect(dialog).toBeVisible({ timeout: 1000 });
+    }).toPass({ timeout: 15_000 });
 
     await dialog.getByRole('searchbox').fill('groupAsCancelablePromise');
     await expect(dialog.getByRole('link', { name: /Groups and concurrency/ }).first()).toBeVisible({ timeout: 15_000 });

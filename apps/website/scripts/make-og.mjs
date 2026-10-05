@@ -93,7 +93,7 @@ const pages = [
     file: 'home',
     kicker: 'Cancelable promises for JavaScript and TypeScript',
     title: 'The cancelable promise you didn’t know you needed.',
-    description: 'Promises that respect boundaries. Cancel what you don’t need.',
+    description: 'Promises you can actually control.',
   },
   {
     file: 'docs',

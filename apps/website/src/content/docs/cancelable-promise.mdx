@@ -11,6 +11,7 @@ import { FlowDiagram } from '../../ui/docs/InlineDiagram';
 import constructor from '@snippets/cancelable-promise/constructor.ts?raw';
 import status from '@snippets/cancelable-promise/status.ts?raw';
 import chaining from '@snippets/cancelable-promise/chaining.ts?raw';
+import chainDown from '@snippets/cancelable-promise/chain-down.ts?raw';
 import settleOnce from '@snippets/cancelable-promise/settle-once.ts?raw';
 import executorThrows from '@snippets/cancelable-promise/executor-throws.ts?raw';
 
@@ -90,8 +91,13 @@ it was created from, so the cleanup of the first promise runs no matter which li
 
 <CodeBlock code={chaining} lang="ts" title="chaining.ts" />
 
-The cancellation travels up the chain, towards the source of the work. A promise chained from a canceled
-promise rejects with the same reason.
+The cancellation travels up the chain, towards the source of the work.
+
+It also travels down. When a promise is canceled, the promises chained from it are canceled too, with the same
+reason. A handler that deals with the cancellation, as `catch` does, stops it there: that promise follows the
+handler.
+
+<CodeBlock code={chainDown} lang="ts" title="chain-down.ts" />
 
 ## Next
 

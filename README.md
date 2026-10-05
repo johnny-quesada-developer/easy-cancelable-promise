@@ -10,13 +10,13 @@
 
 **The cancelable promise you didn't know you needed.** 🚀
 
-_Promises that respect boundaries. Cancel what you don't need._ ✨
+_Promises you can actually control._ ✨
 
 [![npm version](https://img.shields.io/npm/v/easy-cancelable-promise.svg)](https://www.npmjs.com/package/easy-cancelable-promise)
 [![Downloads](https://img.shields.io/npm/dm/easy-cancelable-promise.svg)](https://www.npmjs.com/package/easy-cancelable-promise)
 [![License](https://img.shields.io/npm/l/easy-cancelable-promise.svg)](https://github.com/johnny-quesada-developer/easy-cancelable-promise/blob/main/LICENSE)
 
-[**Documentation**](https://johnny-quesada-developer.github.io/easy-cancelable-promise/) • [**Live examples**](https://johnny-quesada-developer.github.io/easy-cancelable-promise/examples/) • [**GitHub**](https://github.com/johnny-quesada-developer/easy-cancelable-promise) • [**NPM**](https://www.npmjs.com/package/easy-cancelable-promise)
+[**Documentation**](https://johnny-quesada-developer.github.io/easy-cancelable-promise/) • [**Live examples**](https://johnny-quesada-developer.github.io/easy-cancelable-promise/examples/) • [**API reference**](https://johnny-quesada-developer.github.io/easy-cancelable-promise/docs/api-reference/) • [**GitHub**](https://github.com/johnny-quesada-developer/easy-cancelable-promise) • [**NPM**](https://www.npmjs.com/package/easy-cancelable-promise)
 
 </div>
 
@@ -57,6 +57,30 @@ fetchUser.cancel('User navigated away');
 
 ---
 
+## ▶️ See It Before You Read It
+
+Three live examples run the real library in your browser, next to the same code written with native promises. Each one shows measured numbers.
+
+| Example                                                                                                                                   | What you will see                                                                               |
+| ----------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------- |
+| [Stop the work](https://johnny-quesada-developer.github.io/easy-cancelable-promise/examples/stop-the-work/)                               | After Stop, the native promise runs every remaining step. The CancelablePromise runs none.      |
+| [Progress through the promise](https://johnny-quesada-developer.github.io/easy-cancelable-promise/examples/progress-through-the-promise/) | One promise is silent until the end. The other reports every step, also through `.then()`.      |
+| [Cancel a group](https://johnny-quesada-developer.github.io/easy-cancelable-promise/examples/cancel-a-group/)                             | One `cancel` stops the running tasks and the queue. A queue of native promises starts them all. |
+
+---
+
+## 📦 Installation
+
+```bash
+npm install easy-cancelable-promise
+```
+
+**Zero dependencies. TypeScript ready. Works everywhere.**
+
+📚 **Start here:** [Getting started](https://johnny-quesada-developer.github.io/easy-cancelable-promise/docs/getting-started/)
+
+---
+
 ## 🚀 Why Developers Love This Library
 
 ### 🎓 **100% Promise Compatible**
@@ -75,30 +99,7 @@ const cancelable = new CancelablePromise((resolve, reject, { onCancel }) => {
 
 Works with `async/await`, `.then()`, `.catch()` - everything!
 
----
-
-### ⚡ **Built-in Progress Tracking**
-
-```ts
-const download = new CancelablePromise(
-  (resolve, reject, { reportProgress }) => {
-    // Report progress as you go
-    reportProgress(25);
-    reportProgress(50);
-    reportProgress(100);
-
-    resolve('Done!');
-  },
-);
-
-const result = await download.onProgress((percent) => {
-  console.log(`${percent}% complete`);
-});
-
-console.log('Finished:', result);
-```
-
-▶️ **Live example:** [Progress through the promise](https://johnny-quesada-developer.github.io/easy-cancelable-promise/examples/progress-through-the-promise/)
+📚 **Docs:** [CancelablePromise](https://johnny-quesada-developer.github.io/easy-cancelable-promise/docs/cancelable-promise/)
 
 ---
 
@@ -106,73 +107,105 @@ console.log('Finished:', result);
 
 ```ts
 const task = new CancelablePromise((resolve, reject, { onCancel }) => {
-  const resource = allocate();
+  const timer = setTimeout(() => resolve('Done!'), 5000);
 
-  onCancel(() => {
-    resource.cleanup();
-    console.log('Cleaned up!');
+  onCancel((reason) => {
+    clearTimeout(timer);
+    console.log('Cleaned up because:', reason);
   });
-
-  // Do work...
 });
 
-task.cancel(); // Cleanup happens automatically
+task.cancel('No longer needed'); // Cleanup happens automatically
 ```
 
-▶️ **Live example:** [Stop the work](https://johnny-quesada-developer.github.io/easy-cancelable-promise/examples/stop-the-work/)
+Canceling tells everyone to stop waiting. `onCancel` is where the work itself is stopped.
+
+▶️ **Live example:** [Stop the work](https://johnny-quesada-developer.github.io/easy-cancelable-promise/examples/stop-the-work/) · 📚 **Docs:** [cancel and onCancel](https://johnny-quesada-developer.github.io/easy-cancelable-promise/docs/cancel-and-oncancel/)
+
+---
+
+### ⚡ **Built-in Progress Tracking**
+
+```ts
+const download = new CancelablePromise(
+  (resolve, reject, { reportProgress }) => {
+    let received = 0;
+
+    const timer = setInterval(() => {
+      received += 25;
+
+      // Report progress as you go
+      reportProgress(received);
+
+      if (received < 100) return;
+
+      clearInterval(timer);
+      resolve('Done!');
+    }, 100);
+  },
+);
+
+const result = await download.onProgress((percent) => {
+  console.log(`${percent}% complete`); // 25%, 50%, 75%, 100%
+});
+
+console.log('Finished:', result);
+```
+
+The progress also reaches the promises chained with `.then()`.
+
+▶️ **Live example:** [Progress through the promise](https://johnny-quesada-developer.github.io/easy-cancelable-promise/examples/progress-through-the-promise/) · 📚 **Docs:** [Progress reporting](https://johnny-quesada-developer.github.io/easy-cancelable-promise/docs/progress-reporting/)
 
 ---
 
 ### 🔍 **Status Tracking**
 
 ```ts
-console.log(promise.status); // 'pending'
+const task = new CancelablePromise((resolve) => setTimeout(resolve, 1000));
 
-await promise;
-console.log(promise.status); // 'resolved'
+console.log(task.status); // 'pending'
 
-// a pending promise can be canceled
-otherPromise.cancel();
-console.log(otherPromise.status); // 'canceled'
+await task;
+console.log(task.status); // 'resolved'
+
+const other = new CancelablePromise(() => {});
+
+other.cancel();
+console.log(other.status); // 'canceled'
 ```
 
-Track state throughout the entire lifecycle!
+Four statuses: `pending`, `resolved`, `rejected` and `canceled`. A cancellation is never confused with a failure.
 
 📚 **Docs:** [Status](https://johnny-quesada-developer.github.io/easy-cancelable-promise/docs/cancelable-promise/#status)
 
 ---
 
-### 🎪 **Multiple Cleanup Strategies**
+### 🔗 **Chains That Cancel Together**
 
 ```ts
-const download = new CancelablePromise(
-  async (resolve, reject, { onCancel }) => {
-    const controller = new AbortController();
+const user = fetchUser(1); // a CancelablePromise
+const name = user.then((value) => value.name);
+const greeting = name.then((value) => `Hello ${value}`);
 
-    let cleanup = onCancel(() => controller.abort());
+// Cancel any promise of the chain: the request is aborted
+greeting.cancel('User navigated away');
 
-    const file = await fetch(url, { signal: controller.signal });
-
-    // there is nothing to abort anymore, so we can remove the old listener
-    cleanup();
-
-    cleanup = onCancel(() => tempFile.delete());
-
-    await saveFile(file);
-  },
-);
+console.log(user.status); // 'canceled'
 ```
 
-📚 **Docs:** [Remove a listener](https://johnny-quesada-developer.github.io/easy-cancelable-promise/docs/cancel-and-oncancel/#remove-a-listener)
+`then`, `catch` and `finally` return a CancelablePromise. Canceling one cancels the promises it was created from, and the promises chained from a canceled promise are canceled too.
+
+📚 **Docs:** [Chains](https://johnny-quesada-developer.github.io/easy-cancelable-promise/docs/cancelable-promise/#chains)
 
 ---
 
-### 🔗 **Utilities Included**
+### 🧰 **Utilities Included**
 
 ```ts
 import {
   defer,
   groupAsCancelablePromise,
+  toCancelablePromise,
   CancelablePromise,
 } from 'easy-cancelable-promise';
 
@@ -180,172 +213,45 @@ import {
 const deferred = defer<User>();
 button.onclick = () => deferred.resolve(userData);
 
-// Group - batch with concurrency
+// Group - batch with concurrency, one cancel for all
 const batch = groupAsCancelablePromise(
   [() => fetchUser(1), () => fetchUser(2), () => fetchUser(3)],
   { maxConcurrent: 2 },
 );
 
-// Static methods - just like Promise
+// Static methods - just like Promise, and cancelable
 const all = CancelablePromise.all([promise1, promise2]);
 const race = CancelablePromise.race([promise1, promise2]);
+
+// Convert - a native promise, a value or a function
+const cancelable = toCancelablePromise(fetch('/api/user'));
 ```
 
-▶️ **Live example:** [Cancel a group](https://johnny-quesada-developer.github.io/easy-cancelable-promise/examples/cancel-a-group/) · 📚 **Docs:** [defer](https://johnny-quesada-developer.github.io/easy-cancelable-promise/docs/defer/) · [Static helpers](https://johnny-quesada-developer.github.io/easy-cancelable-promise/docs/static-helpers/)
+▶️ **Live example:** [Cancel a group](https://johnny-quesada-developer.github.io/easy-cancelable-promise/examples/cancel-a-group/) · 📚 **Docs:** [defer](https://johnny-quesada-developer.github.io/easy-cancelable-promise/docs/defer/) · [Static helpers](https://johnny-quesada-developer.github.io/easy-cancelable-promise/docs/static-helpers/) · [Converting native promises](https://johnny-quesada-developer.github.io/easy-cancelable-promise/docs/converting-native-promises/)
 
 ---
 
-## 📦 Installation
+## 🌟 The API at a Glance
 
-```bash
-npm install easy-cancelable-promise
-```
+| Export                      | What it is                                                                      | Docs                                                                                                                              |
+| --------------------------- | ------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
+| `CancelablePromise`         | A `Promise` with `status`, `cancel`, `onCancel`, `onProgress`, `reportProgress` | [CancelablePromise](https://johnny-quesada-developer.github.io/easy-cancelable-promise/docs/cancelable-promise/)                  |
+| `CancelablePromise.all`     | Also `allSettled`, `race`, `resolve`, `reject` and `canceled`                   | [Static helpers](https://johnny-quesada-developer.github.io/easy-cancelable-promise/docs/static-helpers/)                         |
+| `defer`                     | A promise with its `resolve`, `reject` and `cancel` outside the callback        | [defer](https://johnny-quesada-developer.github.io/easy-cancelable-promise/docs/defer/)                                           |
+| `groupAsCancelablePromise`  | Many tasks, a concurrency limit, one promise                                    | [Groups and concurrency](https://johnny-quesada-developer.github.io/easy-cancelable-promise/docs/groups-and-concurrency/)         |
+| `toCancelablePromise`       | Converts a promise, a value or a function                                       | [Converting native promises](https://johnny-quesada-developer.github.io/easy-cancelable-promise/docs/converting-native-promises/) |
+| `isCancelablePromise`       | Type guard for cancelable promises                                              | [Type guards](https://johnny-quesada-developer.github.io/easy-cancelable-promise/docs/converting-native-promises/#type-guards)    |
+| `isPromise`                 | Type guard for anything with a `then` method                                    | [Type guards](https://johnny-quesada-developer.github.io/easy-cancelable-promise/docs/converting-native-promises/#type-guards)    |
+| `CancelableAbortController` | An `AbortController` that tracks its subscriptions                              | [Abort signals](https://johnny-quesada-developer.github.io/easy-cancelable-promise/docs/abort-signals/)                           |
+| `isCancelableAbortSignal`   | Type guard for its signal                                                       | [Abort signals](https://johnny-quesada-developer.github.io/easy-cancelable-promise/docs/abort-signals/)                           |
 
-**Zero dependencies. TypeScript ready. Works everywhere.**
-
-📚 **Full documentation, API reference and live examples:** [johnny-quesada-developer.github.io/easy-cancelable-promise](https://johnny-quesada-developer.github.io/easy-cancelable-promise/)
-
----
-
-## 🎬 Quick Start
-
-### The Basics
-
-```ts
-import { CancelablePromise } from 'easy-cancelable-promise';
-
-const loadUserData = new CancelablePromise(
-  async (resolve, reject, { onCancel }) => {
-    const controller = new AbortController();
-    onCancel(() => controller.abort());
-
-    const data = await fetch('/api/user', { signal: controller.signal });
-    resolve(await data.json());
-  },
-);
-
-// Cancel anytime
-loadUserData.cancel('User navigated away');
-```
-
-Works exactly like Promise, but with superpowers. ⚡
-
-📚 **Docs:** [Getting started](https://johnny-quesada-developer.github.io/easy-cancelable-promise/docs/getting-started/)
+Every signature and every exported type: [API reference](https://johnny-quesada-developer.github.io/easy-cancelable-promise/docs/api-reference/).
 
 ---
 
-### Multi-Stage Operations with Cascading Cancellation
+## 🎬 The Essentials
 
-Cancel operations at different stages based on progress:
-
-```ts
-const processData = new CancelablePromise(
-  async (resolve, reject, { onCancel }) => {
-    // Stage 1: Fetch data from API
-    const fetchData = api.fetch(requestId);
-
-    onCancel(() => fetchData.cancel('Request canceled during fetch'));
-
-    const data = await fetchData;
-
-    // Stage 2: Transform and save
-    const saveData = api.save(data);
-
-    onCancel(() => saveData.cancel('Request canceled during save'));
-
-    const result = await saveData;
-
-    resolve(result);
-  },
-);
-
-// User cancels during any stage? Proper cleanup happens automatically
-cancelButton.onclick = () => processData.cancel('User canceled operation');
-```
-
-**Dynamic cleanup strategies that evolve with your operation.** 🎯
-
----
-
-### Progress Tracking
-
-```ts
-const uploadFile = new CancelablePromise(
-  (resolve, reject, { onCancel, reportProgress }) => {
-    const xhr = new XMLHttpRequest();
-
-    xhr.upload.onprogress = (e) => {
-      reportProgress((e.loaded / e.total) * 100);
-    };
-
-    onCancel(() => xhr.abort());
-
-    xhr.onload = () => resolve(xhr.response);
-    xhr.onerror = () => reject(new Error('Upload failed'));
-
-    xhr.open('POST', '/upload');
-    xhr.send(fileData);
-  },
-);
-
-uploadFile
-  .onProgress((percent) => {
-    progressBar.style.width = `${percent}%`;
-  })
-  .then(() => showSuccess())
-  .catch(() => showError());
-
-// Or with async/await
-try {
-  await uploadFile.onProgress((percent) => {
-    progressBar.style.width = `${percent}%`;
-  });
-
-  showSuccess();
-} catch (error) {
-  showError();
-}
-
-// User clicks cancel
-uploadFile.cancel();
-```
-
-**Built-in progress tracking. No extra libraries needed.** 📊
-
-📚 **Docs:** [Progress reporting](https://johnny-quesada-developer.github.io/easy-cancelable-promise/docs/progress-reporting/)
-
----
-
-## 🌟 Core Features Deep Dive
-
-### 1️⃣ CancelablePromise - The Foundation
-
-The core class that extends native Promise with cancellation and lifecycle management.
-
-#### 🎨 The Basics
-
-```ts
-import { CancelablePromise } from 'easy-cancelable-promise';
-
-// Simple timeout
-const timeout = new CancelablePromise((resolve) => {
-  setTimeout(() => resolve('Done!'), 1000);
-});
-
-// With cancellation
-const withCancel = new CancelablePromise((resolve, reject, { onCancel }) => {
-  const id = setTimeout(() => resolve('Done!'), 5000);
-
-  onCancel((reason) => {
-    clearTimeout(id);
-    console.log('Canceled because:', reason);
-  });
-});
-
-withCancel.cancel('User navigated away');
-```
-
-#### 🎯 Executor Utilities
+### Executor Utilities
 
 The third parameter gives you superpowers:
 
@@ -381,394 +287,175 @@ new CancelablePromise(
 );
 ```
 
-#### ⚡ Status Tracking
+📚 **Docs:** [The callback](https://johnny-quesada-developer.github.io/easy-cancelable-promise/docs/cancelable-promise/#the-callback)
 
-Track your promise through its entire lifecycle:
+---
 
-```ts
-const promise = new CancelablePromise((resolve) => {
-  setTimeout(() => resolve('Done!'), 1000);
-});
-
-console.log(promise.status); // 'pending'
-
-promise.then(() => {
-  console.log(promise.status); // 'resolved'
-});
-
-// Or if canceled
-promise.cancel();
-console.log(promise.status); // 'canceled'
-
-// On error
-promise.catch(() => {
-  console.log(promise.status); // 'rejected'
-});
-```
-
-**Status types:**
-
-- `'pending'` - In progress
-- `'resolved'` - Successfully completed
-- `'rejected'` - Failed with error
-- `'canceled'` - Canceled by user/system
-
-#### 🎬 Lifecycle Hooks
-
-Subscribe to cancellation from inside or outside:
+### Cancel a Real Request
 
 ```ts
-// Inside the executor
-const promise = new CancelablePromise((resolve, reject, { onCancel }) => {
-  const socket = createSocket();
+import { CancelablePromise } from 'easy-cancelable-promise';
 
-  onCancel(() => {
-    socket.close();
-    console.log('Socket closed');
-  });
-
-  socket.on('data', (data) => resolve(data));
-});
-
-// Outside the executor
-promise.onCancel((reason) => {
-  console.log('Canceled because:', reason);
-  logToAnalytics('promise_canceled', { reason });
-});
-```
-
-#### 🎨 Progress Tracking
-
-Report and track progress throughout execution:
-
-```ts
-const task = new CancelablePromise((resolve, reject, { reportProgress }) => {
-  const steps = 10;
-
-  for (let i = 0; i < steps; i++) {
-    doWork(i);
-    reportProgress((i / steps) * 100);
-  }
-
-  resolve('Complete!');
-});
-
-// Track progress
-task.onProgress((percent, metadata) => {
-  updateProgressBar(percent);
-  console.log(`${percent}% complete`, metadata);
-});
-
-// Chain progress tracking
-task
-  .onProgress((p) => console.log(`Progress: ${p}%`))
-  .onProgress((p) => updateUI(p))
-  .then((result) => console.log('Done!', result));
-```
-
-#### 🎪 Cancel from Anywhere
-
-Cancel from inside the executor or outside:
-
-```ts
-const fetchWithTimeout = new CancelablePromise(
-  async (resolve, reject, { cancel, onCancel }) => {
+const fetchUser = (id: number) =>
+  new CancelablePromise<User>(async (resolve, reject, { onCancel }) => {
     const controller = new AbortController();
 
     onCancel(() => controller.abort());
 
-    // control it's own timeout
-    const timeoutId = setTimeout(() => {
-      cancel('Request timeout');
-    }, 5000);
+    const response = await fetch(`/api/users/${id}`, {
+      signal: controller.signal,
+    });
 
-    try {
-      const response = await fetch('/api/data', { signal: controller.signal });
-      clearTimeout(timeoutId);
+    resolve(await response.json());
+  });
 
-      resolve(await response.json());
-    } catch (error) {
-      clearTimeout(timeoutId);
-      reject(error);
-    }
-  },
-);
+const request = fetchUser(1);
 
-// Cancel from outside (internal timeout also cancels automatically)
-cancelButton.onclick = () => {
-  fetchWithTimeout.cancel('User canceled');
-};
-
-// Cancellation won't cause unhandled rejection, but you can catch it:
-fetchWithTimeout.catch((error) => {
-  console.log('Request failed or canceled:', error);
-});
+// Cancel anytime
+request.cancel('User navigated away');
 ```
 
-📚 **More:** [CancelablePromise](https://johnny-quesada-developer.github.io/easy-cancelable-promise/docs/cancelable-promise/) · [cancel and onCancel](https://johnny-quesada-developer.github.io/easy-cancelable-promise/docs/cancel-and-oncancel/) · [Progress reporting](https://johnny-quesada-developer.github.io/easy-cancelable-promise/docs/progress-reporting/)
+The callback can be `async`. An error it throws rejects the promise.
+
+📚 **Docs:** [Getting started](https://johnny-quesada-developer.github.io/easy-cancelable-promise/docs/getting-started/)
 
 ---
 
-### 2️⃣ defer - Deferred Promises
+### Tell a Cancellation From a Failure
 
-Create promises with externalized resolve/reject control:
+```ts
+try {
+  const user = await request;
+} catch (error) {
+  if (request.status === 'canceled') return; // nobody needs it any more
+
+  showError(error);
+}
+```
+
+Canceling never causes an unhandled rejection, even when nothing catches it.
+
+📚 **Docs:** [A cancellation is not a failure](https://johnny-quesada-developer.github.io/easy-cancelable-promise/docs/cancel-and-oncancel/#a-cancellation-is-not-a-failure)
+
+---
+
+### Deferred Promises
 
 ```ts
 import { defer } from 'easy-cancelable-promise';
 
-// Basic usage
-const deferred = defer<string>();
-
-deferred.promise.then((result) => {
-  console.log('Result:', result);
-});
-
-// Resolve from anywhere
-setTimeout(() => {
-  deferred.resolve('Hello world!');
-}, 1000);
-
-// Or reject
-deferred.reject(new Error('Something went wrong'));
-
-// Or cancel
-deferred.cancel('User canceled');
-```
-
-#### 🎯 Event-Based Resolution
-
-```ts
 function waitForUserInput() {
   const deferred = defer<string>();
 
-  const button = document.getElementById('submit');
-  const input = document.getElementById('input') as HTMLInputElement;
-
-  button.addEventListener('click', () => {
-    deferred.resolve(input.value);
-  });
+  submitButton.addEventListener('click', () => deferred.resolve(input.value));
 
   // Auto-cancel after 30 seconds
-  setTimeout(() => {
-    deferred.cancel('Timeout');
-  }, 30000);
+  setTimeout(() => deferred.cancel('Timeout'), 30000);
 
   return deferred.promise;
 }
 
 const userInput = await waitForUserInput();
-console.log('User entered:', userInput);
 ```
 
-#### 🔄 Managing Long-Running Operations
-
-```ts
-class TaskManager {
-  private currentTask: CancelablePromise<Result> | null = null;
-
-  async executeTask(task: Task) {
-    // Cancel previous task if running
-    this.currentTask?.cancel('New task started');
-
-    // Start new task
-    this.currentTask = api.performTask(task);
-
-    // Return new task promise
-    return this.currentTask;
-  }
-
-  cancel() {
-    this.currentTask?.cancel('User canceled');
-  }
-}
-```
-
-📚 **More:** [defer and DeferredPromise](https://johnny-quesada-developer.github.io/easy-cancelable-promise/docs/defer/)
+📚 **Docs:** [defer and DeferredPromise](https://johnny-quesada-developer.github.io/easy-cancelable-promise/docs/defer/)
 
 ---
 
-### 3️⃣ toCancelablePromise - Universal Converter
-
-Convert anything to a CancelablePromise:
-
-```ts
-import { toCancelablePromise } from 'easy-cancelable-promise';
-
-// From native Promise
-const native = Promise.resolve('hello');
-const cancelable = toCancelablePromise(native);
-cancelable.cancel(); // Now cancelable!
-
-// From value
-const fromValue = toCancelablePromise(42);
-console.log(await fromValue); // 42
-
-// Already cancelable? Returns as-is
-const alreadyCancelable = new CancelablePromise((resolve) => resolve('hi'));
-const same = toCancelablePromise(alreadyCancelable);
-console.log(same === alreadyCancelable); // true
-```
-
-📚 **More:** [Converting native promises](https://johnny-quesada-developer.github.io/easy-cancelable-promise/docs/converting-native-promises/)
-
----
-
-### 4️⃣ groupAsCancelablePromise - Concurrency Control
-
-Group multiple promises with advanced control over execution:
+### Groups With a Concurrency Limit
 
 ```ts
 import { groupAsCancelablePromise } from 'easy-cancelable-promise';
 
-const tasks = [
-  () => fetchUser(1),
-  () => fetchUser(2),
-  () => fetchUser(3),
-  () => fetchUser(4),
-  () => fetchUser(5),
-];
-
-// Execute with concurrency limit
-const group = groupAsCancelablePromise(tasks, {
-  maxConcurrent: 2, // Only 2 at a time
-});
-
-group.onProgress((percent) => {
-  console.log(`${percent}% complete`);
-});
-
-const results = await group;
-console.log('All users:', results);
-
-// Cancel all pending tasks
-group.cancel('User navigated away');
-```
-
-#### 🎛️ Configuration Options
-
-```ts
-groupAsCancelablePromise(tasks, {
-  // Max concurrent executions (default: 8)
-  maxConcurrent: 3,
-
-  // Start each task only after the previous one finished (default: false)
-  executeInOrder: true,
-
-  // Called before each task starts
-  beforeEachCallback: () => {
-    console.log('Starting a task');
-  },
-
-  // Called after each success, with the result of the task
-  afterEachCallback: (result) => {
-    console.log('Task completed:', result);
-  },
-
-  // Called once all the tasks are completed, with all the results
-  onQueueEmptyCallback: (results) => {
-    console.log('All tasks complete!', results);
-  },
-});
-```
-
-Good to know:
-
-- The results keep the position of their tasks, no matter which one finishes first.
-- If a task is rejected, the group is rejected with the same reason and no more tasks are started.
-- If the group is canceled, the pending tasks are canceled. If a task is canceled, the group is canceled.
-- An empty list of tasks returns `null`.
-
-#### 🎯 Real-World: Batch Processing
-
-```ts
-async function processBatch(items: Item[]) {
-  const tasks = items.map((item) => () => api.processAndSaveItem(item)); // returns CancelablePromise
-
-  let started = 0;
-  let processed = 0;
-
-  return groupAsCancelablePromise(tasks, {
+const batch = groupAsCancelablePromise(
+  items.map((item) => () => api.processAndSaveItem(item)),
+  {
+    // Only 5 at a time (default: 8)
     maxConcurrent: 5,
 
-    beforeEachCallback: () => {
-      started++;
-      updateProgress(`Processing item ${started}/${items.length}`);
+    // Called before each task, with its position
+    beforeEachCallback: (index) => {
+      updateStatus(`Processing item ${index + 1}/${items.length}`);
     },
 
-    afterEachCallback: (result) => {
-      processed++;
-      logSuccess(`${processed} items processed`);
+    // Called after each success, with the result and the position
+    afterEachCallback: (result, index) => {
+      logSuccess(`Item ${index + 1} processed`);
     },
-  });
-}
+  },
+);
 
-const batch = processBatch(items);
-
-// Track progress
 batch.onProgress((percent) => {
   progressBar.style.width = `${percent}%`;
 });
 
-// Cancel if user navigates away
-window.addEventListener('beforeunload', () => {
-  batch.cancel('Page unloading');
-});
-
+// The results keep the order of the tasks
 const results = await batch;
+
+// One call cancels the running tasks and the ones still in the queue
+batch.cancel('Page unloading');
 ```
 
-#### 🔄 Sequential Execution
+Good to know:
 
-```ts
-const tasks = [() => step1(), () => step2(), () => step3()];
+- If a task is rejected, the group is rejected with the same reason and no more tasks are started.
+- `executeInOrder: true` starts each task only after the previous one finished.
+- An empty list of tasks returns `null`.
 
-const sequential = groupAsCancelablePromise(tasks, {
-  executeInOrder: true,
-});
-
-// Guaranteed to execute in order, one at a time
-const results = await sequential; // [result1, result2, result3]
-```
-
-▶️ **Live example:** [Cancel a group](https://johnny-quesada-developer.github.io/easy-cancelable-promise/examples/cancel-a-group/) · 📚 **More:** [Groups and concurrency](https://johnny-quesada-developer.github.io/easy-cancelable-promise/docs/groups-and-concurrency/)
+▶️ **Live example:** [Cancel a group](https://johnny-quesada-developer.github.io/easy-cancelable-promise/examples/cancel-a-group/) · 📚 **Docs:** [Groups and concurrency](https://johnny-quesada-developer.github.io/easy-cancelable-promise/docs/groups-and-concurrency/)
 
 ---
 
-### 5️⃣ Type Guards
-
-Runtime type checking utilities:
+### Convert What You Already Have
 
 ```ts
-import { isPromise, isCancelablePromise } from 'easy-cancelable-promise';
+import {
+  toCancelablePromise,
+  isCancelablePromise,
+} from 'easy-cancelable-promise';
 
-// Check if value is a Promise
-if (isPromise(value)) {
-  await value;
-}
+const fromPromise = toCancelablePromise(Promise.resolve('hello'));
+const fromValue = toCancelablePromise(42);
+const fromFunction = toCancelablePromise(() => Promise.resolve(true));
 
-// Check if it's a CancelablePromise
-if (isCancelablePromise(value)) {
-  value.cancel();
-  console.log(value.status);
-}
+console.log(isCancelablePromise(fromPromise)); // true
 ```
 
-#### 🎯 Real-World: Polymorphic Handling
+A wrapped native promise can be canceled, but its work cannot be stopped: the native promise has no way to stop. To stop the work, create the CancelablePromise where the work starts.
 
-```ts
-function handleAsyncValue(value: unknown) {
-  // Already cancelable? Use full API
-  if (isCancelablePromise(value)) {
-    value.onProgress((p) => console.log(`${p}%`));
-    return value;
-  }
+📚 **Docs:** [What a wrapper can stop](https://johnny-quesada-developer.github.io/easy-cancelable-promise/docs/converting-native-promises/#what-a-wrapper-can-stop)
 
-  // Promise or value - convert to cancelable
-  return toCancelablePromise(value);
-}
-```
+---
 
-📚 **More:** [Type guards](https://johnny-quesada-developer.github.io/easy-cancelable-promise/docs/converting-native-promises/#type-guards) · [API reference](https://johnny-quesada-developer.github.io/easy-cancelable-promise/docs/api-reference/)
+## 📚 Documentation
+
+| I want to...                           | Go to                                                                                                                                            |
+| -------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Create my first cancelable promise     | [Getting started](https://johnny-quesada-developer.github.io/easy-cancelable-promise/docs/getting-started/)                                      |
+| Understand the class and its status    | [CancelablePromise](https://johnny-quesada-developer.github.io/easy-cancelable-promise/docs/cancelable-promise/)                                 |
+| Cancel, clean up and pass a reason     | [cancel and onCancel](https://johnny-quesada-developer.github.io/easy-cancelable-promise/docs/cancel-and-oncancel/)                              |
+| Report and track progress              | [Progress reporting](https://johnny-quesada-developer.github.io/easy-cancelable-promise/docs/progress-reporting/)                                |
+| Resolve a promise from outside         | [defer and DeferredPromise](https://johnny-quesada-developer.github.io/easy-cancelable-promise/docs/defer/)                                      |
+| Use `all`, `allSettled` and `race`     | [Static helpers](https://johnny-quesada-developer.github.io/easy-cancelable-promise/docs/static-helpers/)                                        |
+| Wrap promises I already have           | [Converting native promises](https://johnny-quesada-developer.github.io/easy-cancelable-promise/docs/converting-native-promises/)                |
+| Limit concurrency and cancel a batch   | [Groups and concurrency](https://johnny-quesada-developer.github.io/easy-cancelable-promise/docs/groups-and-concurrency/)                        |
+| Remove listeners with a signal         | [Abort signals](https://johnny-quesada-developer.github.io/easy-cancelable-promise/docs/abort-signals/)                                          |
+| Know the types and the package entries | [TypeScript](https://johnny-quesada-developer.github.io/easy-cancelable-promise/docs/typescript/)                                                |
+| Test cancelable code                   | [Testing](https://johnny-quesada-developer.github.io/easy-cancelable-promise/docs/testing/)                                                      |
+| Fix something that does not work       | [Troubleshooting](https://johnny-quesada-developer.github.io/easy-cancelable-promise/docs/troubleshooting/)                                      |
+| Upgrade from version 2                 | [Platform and versions](https://johnny-quesada-developer.github.io/easy-cancelable-promise/docs/platform-and-versions/#upgrading-from-version-2) |
+
+---
+
+## 🆕 Version 3
+
+- Published as ES modules and CommonJS. Every entry of the package shares one class, so `instanceof` works between them.
+- A group rejects when a task fails, keeps the order of its results, and passes the position of each task to its callbacks.
+- A promise settles once: later calls to `resolve`, `reject` and `cancel` are ignored and the status does not change.
+- An error thrown by the callback, also an `async` one, rejects the promise.
+- The promises chained from a canceled promise are canceled too.
+
+Everything that changed, and what to do about it: [Upgrading from version 2](https://johnny-quesada-developer.github.io/easy-cancelable-promise/docs/platform-and-versions/#upgrading-from-version-2).
 
 ---
 
@@ -785,30 +472,8 @@ function handleAsyncValue(value: unknown) {
 | ✅ Concurrency control        | ✅                      | ❌             | ✅       | ❌           |
 | ✅ TypeScript first           | ✅                      | ✅             | ⚠️       | ✅           |
 | ✅ Zero dependencies          | ✅                      | ✅             | ❌       | ✅           |
-| ✅ Bundle size                | ~6KB                    | 0              | ~632KB   | ~13KB        |
 
----
-
-## 🚀 Get Started Now
-
-```bash
-npm install easy-cancelable-promise
-```
-
-Then in your app:
-
-```ts
-import { CancelablePromise } from 'easy-cancelable-promise';
-
-const task = new CancelablePromise((resolve, reject, { onCancel }) => {
-  const timeoutId = setTimeout(() => resolve('Done!'), 5000);
-  onCancel(() => clearTimeout(timeoutId));
-});
-
-task.cancel(); // That's it!
-```
-
-**Your promises, your control.** 🎉
+The whole library is about 7 KB minified and 2 KB gzipped, and bundlers drop what you do not import.
 
 ---
 
@@ -822,6 +487,13 @@ task.cancel(); // That's it!
 
 We welcome contributions! If you have an idea for a new feature or improvement, please open an issue or submit a pull request.
 
+```bash
+yarn install
+yarn test              # unit tests of the library and of the website
+yarn dev               # the documentation site, against the built package
+yarn prepare-packages  # everything: lint, types, tests, build, browser tests, links
+```
+
 ---
 
 ## 📄 License
@@ -834,6 +506,6 @@ MIT License - see [LICENSE](LICENSE) for details.
 
 ### Built with ❤️ for developers who value control
 
-**[📚 Documentation](https://johnny-quesada-developer.github.io/easy-cancelable-promise/)** • **[⭐ Star on GitHub](https://github.com/johnny-quesada-developer/easy-cancelable-promise)** • **[📝 Report Issues](https://github.com/johnny-quesada-developer/easy-cancelable-promise/issues)** • **[📦 NPM Package](https://www.npmjs.com/package/easy-cancelable-promise)**
+**[📚 Documentation](https://johnny-quesada-developer.github.io/easy-cancelable-promise/)** • **[▶️ Live examples](https://johnny-quesada-developer.github.io/easy-cancelable-promise/examples/)** • **[⭐ Star on GitHub](https://github.com/johnny-quesada-developer/easy-cancelable-promise)** • **[📝 Report Issues](https://github.com/johnny-quesada-developer/easy-cancelable-promise/issues)** • **[📦 NPM Package](https://www.npmjs.com/package/easy-cancelable-promise)**
 
 </div>

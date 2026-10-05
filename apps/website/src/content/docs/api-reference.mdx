@@ -120,8 +120,8 @@ empty.
 | ---------------------- | ------------------------------ | ------- | -------------------------------------------------------- |
 | `maxConcurrent`        | `number`                       | `8`     | How many sources run at the same time                    |
 | `executeInOrder`       | `boolean`                      | `false` | Starts each source after the previous one finished       |
-| `beforeEachCallback`   | `() => void`                   | none    | Called before each source starts                         |
-| `afterEachCallback`    | `(result: unknown) => void`    | none    | Called after each source that succeeded                  |
+| `beforeEachCallback`   | `(index: number) => void`      | none    | Called before each source starts                         |
+| `afterEachCallback`    | `(result: unknown, index: number) => void` | none | Called after each source that succeeded           |
 | `onQueueEmptyCallback` | `(result: unknown[] \| null) => void` | none | Called once, when every source succeeded           |
 
 The promise resolves with the results in the order of the sources, reports the percentage of sources completed,

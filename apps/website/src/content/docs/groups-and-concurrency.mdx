@@ -53,8 +53,8 @@ already running are not canceled.
 | ---------------------- | ------- | -------------------------------------------------------------------- |
 | `maxConcurrent`        | `8`     | How many tasks run at the same time. Values below `1` behave as `1`  |
 | `executeInOrder`       | `false` | Starts each task only after the previous one finished                |
-| `beforeEachCallback`   | none    | Called before each task starts                                       |
-| `afterEachCallback`    | none    | Called after each task that succeeded, with its result               |
+| `beforeEachCallback`   | none    | Called before each task starts, with the position of the task        |
+| `afterEachCallback`    | none    | Called after each task that succeeded, with its result and position  |
 | `onQueueEmptyCallback` | none    | Called once, when every task succeeded, with all the results         |
 
 Tasks run in batches of `maxConcurrent`: the next batch starts when every task of the current one finished.

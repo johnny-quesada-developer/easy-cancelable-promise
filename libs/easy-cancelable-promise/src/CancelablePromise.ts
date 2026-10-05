@@ -87,6 +87,9 @@ export class CancelablePromise<TResult = void> extends Promise<TResult> {
   private _resolve: ResolveCallback<TResult>;
   private _reject: RejectCallback;
 
+  // The reason the promise was canceled with, used to recognize the cancellation in the chained promises
+  private cancelReason: unknown;
+
   constructor(callback: CancelablePromiseCallback<TResult>) {
     let resolve: ResolveCallback<TResult>;
     let reject: RejectCallback;
@@ -248,6 +251,8 @@ export class CancelablePromise<TResult = void> extends Promise<TResult> {
     const _reason =
       reason === undefined ? new Error('Promise canceled') : reason;
 
+    this.cancelReason = _reason;
+
     // a callback that throws should not prevent the cancellation of the promise
     const errors: unknown[] = [];
 
@@ -354,10 +359,22 @@ export class CancelablePromise<TResult = void> extends Promise<TResult> {
       this.cancel(reason);
     });
 
+    // A promise chained from a canceled promise is canceled too.
+    // If a handler of the chain dealt with the cancellation the chained promise follows that handler instead.
+    const rejectOrCancel: RejectCallback = (reason) => {
+      if (this.status === 'canceled' && reason === this.cancelReason) {
+        promise.cancel(reason);
+
+        return;
+      }
+
+      reject(reason);
+    };
+
     return {
       promise,
       resolve,
-      reject,
+      reject: rejectOrCancel,
     };
   }
 

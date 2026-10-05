@@ -19,9 +19,7 @@ export function Footer({ children }: FooterProps) {
               <span>easy-cancelable-promise</span>
             </a>
             <p className="mt-[14px] max-w-[280px] text-12 leading-[1.8]">
-              Promises that respect boundaries.
-              <br />
-              Cancel what you don't need.
+              Promises you can actually control.
             </p>
           </div>
           {footerNav.map((column) => (

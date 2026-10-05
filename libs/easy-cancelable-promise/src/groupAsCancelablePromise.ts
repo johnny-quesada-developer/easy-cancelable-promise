@@ -12,10 +12,10 @@ export type CancelablePromiseGroupConfig = {
   maxConcurrent?: number;
   /** If true, promises execute sequentially in order. Default: false */
   executeInOrder?: boolean;
-  /** Callback invoked before each promise execution */
-  beforeEachCallback?: () => void;
+  /** Callback invoked before each promise execution, with the position of the source */
+  beforeEachCallback?: (index: number) => void;
   /** Callback invoked after each successful promise resolution */
-  afterEachCallback?: (result: unknown) => void;
+  afterEachCallback?: (result: unknown, index: number) => void;
   /** Callback invoked when all promises have completed */
   onQueueEmptyCallback?: (result: unknown[] | null) => void;
 };
@@ -57,7 +57,7 @@ export const groupAsCancelablePromise = <TResult extends Array<unknown>>(
 
       // Execute the first batch of callbacks from the queue
       const promises = queue.splice(0, batchSize).map(({ source, index }) => {
-        beforeEachCallback?.();
+        beforeEachCallback?.(index);
 
         const result = typeof source === 'function' ? source() : source;
 
@@ -77,7 +77,7 @@ export const groupAsCancelablePromise = <TResult extends Array<unknown>>(
             results[index] = result as unknown as TResult[number];
             resultsLength++;
 
-            afterEachCallback?.(result);
+            afterEachCallback?.(result, index);
 
             // Report overall progress
             promiseUtils.reportProgress((resultsLength / sources.length) * 100);

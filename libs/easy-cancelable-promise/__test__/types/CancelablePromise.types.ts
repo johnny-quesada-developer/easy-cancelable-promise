@@ -253,9 +253,12 @@ const group = groupAsCancelablePromise<[number, string]>(
   {
     maxConcurrent: 2,
     executeInOrder: true,
-    beforeEachCallback: () => {},
-    afterEachCallback: (result) => {
+    beforeEachCallback: (index) => {
+      expectType<Equal<typeof index, number>>();
+    },
+    afterEachCallback: (result, index) => {
       expectType<Equal<typeof result, unknown>>();
+      expectType<Equal<typeof index, number>>();
     },
     onQueueEmptyCallback: () => {},
   },

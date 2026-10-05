@@ -201,6 +201,57 @@ describe('CancelablePromise settle rules', () => {
   });
 });
 
+describe('promises chained from a canceled promise', () => {
+  it('should be canceled when the promise they were created from is canceled', async () => {
+    const cancelLogger = vi.fn();
+    const promise = new CancelablePromise<string>(() => {});
+
+    const child = promise.then((value) => value.length);
+    const grandchild = child.then((value) => value * 2).onCancel(cancelLogger);
+    const afterFinally = promise.finally(() => {});
+
+    promise.cancel('reason');
+
+    await expect(grandchild).rejects.toBe('reason');
+    await expect(afterFinally).rejects.toBe('reason');
+
+    expect(promise.status).toBe('canceled');
+    expect(child.status).toBe('canceled');
+    expect(grandchild.status).toBe('canceled');
+    expect(afterFinally.status).toBe('canceled');
+    expect(cancelLogger).toHaveBeenCalledWith('reason');
+  });
+
+  it('should follow the handler that dealt with the cancellation', async () => {
+    const promise = new CancelablePromise<string>(() => {});
+
+    const handled = promise.catch(() => 'handled');
+    const replaced = promise.catch(() => {
+      throw new Error('another error');
+    });
+
+    promise.cancel('reason');
+
+    expect(await handled).toBe('handled');
+    await expect(replaced).rejects.toThrow('another error');
+
+    expect(handled.status).toBe('resolved');
+    expect(replaced.status).toBe('rejected');
+  });
+
+  it('should be rejected, not canceled, when the promise is rejected', async () => {
+    const promise = new CancelablePromise<string>((_, reject) =>
+      reject('error'),
+    );
+
+    const child = promise.then((value) => value.length);
+
+    await expect(child).rejects.toBe('error');
+
+    expect(child.status).toBe('rejected');
+  });
+});
+
 describe('CancelablePromise statics with special collections', () => {
   it('all should resolve an empty collection', async () => {
     const promise = CancelablePromise.all([]);

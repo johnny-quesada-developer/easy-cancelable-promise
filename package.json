@@ -1,6 +1,6 @@
 {
   "name": "easy-cancelable-promise-monorepo",
-  "version": "3.0.0",
+  "version": "3.0.0-beta.0",
   "private": true,
   "description": "Monorepo for the easy-cancelable-promise package.",
   "workspaces": [
@@ -54,6 +54,7 @@
     "@vitest/coverage-v8": "^2.1.9",
     "esbuild": "^0.24.0",
     "eslint": "^9.39.2",
+    "eslint-plugin-astro": "^3.2.1",
     "globals": "^17.13.0",
     "nx": "^23.0.0",
     "prettier": "^3.2.1",

@@ -60,9 +60,7 @@ export function NavDrawer({ pathname }: NavDrawerProps) {
         </button>
       </div>
       <p className="mt-1 text-11 text-muted">
-        Promises that respect boundaries.
-        <br />
-        Cancel what you don't need.
+        Promises you can actually control.
       </p>
     </dialog>
   );

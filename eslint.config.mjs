@@ -1,8 +1,8 @@
 import js from '@eslint/js';
 import tsPlugin from '@typescript-eslint/eslint-plugin';
+import astro from 'eslint-plugin-astro';
 import globals from 'globals';
 
-// .astro files are not linted here: their ESLint parser needs a newer Node. `astro check` type-checks them.
 export default [
   {
     ignores: [
@@ -17,6 +17,8 @@ export default [
   },
   js.configs.recommended,
   ...tsPlugin.configs['flat/recommended'],
+  // .astro pages and layouts. Its parser needs Node 24.16 or later (see .nvmrc).
+  ...astro.configs['flat/recommended'],
   {
     languageOptions: { globals: { ...globals.browser, ...globals.node } },
   },
