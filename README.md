@@ -333,7 +333,7 @@ try {
 }
 ```
 
-Canceling never causes an unhandled rejection, even when nothing catches it.
+The promise you cancel never causes an unhandled rejection, even when nothing catches it.
 
 📚 **Docs:** [A cancellation is not a failure](https://johnny-quesada-developer.github.io/easy-cancelable-promise/docs/cancel-and-oncancel/#a-cancellation-is-not-a-failure)
 

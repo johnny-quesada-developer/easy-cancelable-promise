@@ -22,9 +22,9 @@ the promise and calls no listener. Read `promise.status` to see how it ended.
 
 ## An unhandled rejection after canceling
 
-Canceling a promise never causes an unhandled rejection, and neither do the promises chained from it: they are
-canceled too. An unhandled rejection after a cancellation comes from a handler of the chain that threw another
-error. Add a `catch` after that handler.
+The promise you call `cancel` on never causes an unhandled rejection. A promise you created from it with `then`
+or `finally` is a different promise: it is canceled too, and it rejects with the same reason. Add a `catch` to the
+chain you created, or call `cancel` on the last promise of the chain instead.
 
 ## instanceof CancelablePromise is false
 

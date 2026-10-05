@@ -7,6 +7,14 @@ async function settle(page: Page) {
   await page.waitForLoadState('networkidle');
   await page.evaluate(() => document.fonts.ready);
   await page.locator('.toast').waitFor({ state: 'attached' });
+
+  // The version of the package changes with every release, and a longer or shorter text moves the
+  // lines after it. The baselines are taken with a fixed one, so a version bump never touches them.
+  await page.evaluate(() => {
+    document.querySelectorAll('[data-package-version]').forEach((element) => {
+      element.textContent = '0.0.0';
+    });
+  });
 }
 
 for (const route of routes()) {

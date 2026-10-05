@@ -34,6 +34,8 @@ Each spec runs in two projects, `desktop` (1440×900) and `mobile` (390×844).
   never part of a screenshot.
 - The suite serves the production build through `scripts/visual-server.mjs`. `astro preview` detaches
   into a background daemon, which Playwright's `webServer` cannot manage.
+- The package version shown on the pages is replaced with `0.0.0` before each screenshot, so a version
+  bump does not change the baselines.
 - `maxDiffPixelRatio` is `0.03`: up to 3% of a screenshot's pixels may differ before it fails.
 
 ## Local only

@@ -5,7 +5,6 @@ const task = new CancelablePromise<void>(() => {});
 // no catch needed: canceling a promise never causes an unhandled rejection
 task.cancel();
 
-// the promises chained from it are canceled too, and need no catch either
-const next = task.then(() => console.log('never runs'));
-
-console.log(next.status); // 'pending' now, 'canceled' once the cancellation reaches it
+// a promise chained from it is canceled too, but nobody called cancel on that one:
+// it rejects like any other promise, so handle the chains you create
+task.then(() => console.log('never runs')).catch(() => {});

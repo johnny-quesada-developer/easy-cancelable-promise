@@ -34,7 +34,7 @@ Bundlers and Node with `import` load the ES modules. `require` loads the CommonJ
 ## Upgrading from version 2
 
 <Callout type="note" title="Version documented here">
-  These pages describe <strong>{PACKAGE_VERSION}</strong>.
+  These pages describe <strong data-package-version>{PACKAGE_VERSION}</strong>.
 </Callout>
 
 The public API is the same. What changed is how the package is built, and a number of cases that did not behave
@@ -50,7 +50,12 @@ as documented.
 | `allSettled` results are `CancelablePromiseSettledResult` | A variable typed `PromiseSettledResult` needs the new type              |
 | `groupAsCancelablePromise` keeps the order of the tasks   | Results were in completion order. Stop sorting them                     |
 | `executeInOrder` runs one task at a time                  | Before, the tasks of a batch started together                           |
-| Promises chained from a canceled promise are `canceled`   | Their status was `rejected`. Check `status` where you compared it       |
+| Promises chained from a canceled promise are `canceled`   | Their status was `rejected`. They still reject, so keep their `catch`   |
+
+## Release notes
+
+- `cancel()` now reaches a `CancelablePromise` used as the result of another promise.
+- A promise resolved with a pending promise stays pending, so it can be canceled; in 2.x that cancel was ignored.
 
 ## New in version 3
 

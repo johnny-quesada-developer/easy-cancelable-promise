@@ -201,6 +201,135 @@ describe('CancelablePromise settle rules', () => {
   });
 });
 
+describe('a promise resolved with another promise', () => {
+  const wait = (milliseconds: number) =>
+    new Promise<void>((resolve) => setTimeout(resolve, milliseconds));
+
+  it('should cancel the CancelablePromise it was resolved with', async () => {
+    let innerOnCancel = false;
+    let workFinished = false;
+
+    const inner = new CancelablePromise<string>((resolve, _, { onCancel }) => {
+      const timer = setTimeout(() => {
+        workFinished = true;
+        resolve('inner done');
+      }, 60);
+
+      onCancel(() => {
+        innerOnCancel = true;
+        clearTimeout(timer);
+      });
+    });
+
+    const outer = new CancelablePromise<string>((resolve) => resolve(inner));
+
+    outer.cancel('why');
+
+    expect(outer.status).toBe('canceled');
+    expect(inner.status).toBe('canceled');
+    expect(innerOnCancel).toBe(true);
+
+    await wait(120);
+
+    expect(workFinished).toBe(false);
+    expect(inner.status).toBe('canceled');
+    await expect(outer).rejects.toBe('why');
+    await expect(inner).rejects.toBe('why');
+  });
+
+  it('should not touch a result that already settled', async () => {
+    const cancelLogger = vi.fn();
+    const inner =
+      CancelablePromise.resolve('inner done').onCancel(cancelLogger);
+
+    const outer = new CancelablePromise<string>((resolve) => resolve(inner));
+
+    expect(outer.status).toBe('pending');
+    expect(() => outer.cancel('why')).not.toThrow();
+
+    expect(outer.status).toBe('canceled');
+    expect(inner.status).toBe('resolved');
+    expect(cancelLogger).not.toHaveBeenCalled();
+    expect(await inner).toBe('inner done');
+    await expect(outer).rejects.toBe('why');
+  });
+
+  it('should ignore a native promise used as result after the cancel', async () => {
+    const unhandled = vi.fn();
+
+    process.on('unhandledRejection', unhandled);
+
+    const resolved = new Promise<string>((resolve) =>
+      setTimeout(() => resolve('late'), 10),
+    );
+    const rejected = new Promise<string>((_, reject) =>
+      setTimeout(() => reject(new Error('late error')), 10),
+    );
+
+    const first = new CancelablePromise<string>((resolve) => resolve(resolved));
+    const second = new CancelablePromise<string>((resolve) =>
+      resolve(rejected),
+    );
+
+    first.cancel('why');
+    second.cancel('why');
+
+    await wait(40);
+
+    process.off('unhandledRejection', unhandled);
+
+    expect(first.status).toBe('canceled');
+    expect(second.status).toBe('canceled');
+    expect(unhandled).not.toHaveBeenCalled();
+    await expect(first).rejects.toBe('why');
+    await expect(second).rejects.toBe('why');
+  });
+
+  it('should cancel the promise even if a cancel callback of the result throws', async () => {
+    const error = new Error('inner listener error');
+
+    const inner = new CancelablePromise<string>(() => {}).onCancel(() => {
+      throw error;
+    });
+
+    const outer = new CancelablePromise<string>((resolve) => resolve(inner));
+
+    // the error is reported once both promises are canceled, as with the other cancel callbacks
+    expect(() => outer.cancel('why')).toThrow(error);
+
+    expect(outer.status).toBe('canceled');
+    expect(inner.status).toBe('canceled');
+    await expect(outer).rejects.toBe('why');
+    await expect(inner).rejects.toBe('why');
+  });
+
+  it('should reach every level of promises resolved with promises', async () => {
+    const cancelLogger = vi.fn();
+
+    const inner = new CancelablePromise<string>((_, __, { onCancel }) => {
+      onCancel(cancelLogger);
+    });
+    const middle = new CancelablePromise<string>((resolve) => resolve(inner));
+    const outer = new CancelablePromise<string>((resolve) => resolve(middle));
+
+    outer.cancel('why');
+
+    expect(outer.status).toBe('canceled');
+    expect(middle.status).toBe('canceled');
+    expect(inner.status).toBe('canceled');
+    expect(cancelLogger).toHaveBeenCalledWith('why');
+    await expect(outer).rejects.toBe('why');
+  });
+
+  it('should stop listening to the cancellation once the result settles', async () => {
+    const inner = CancelablePromise.resolve('inner done');
+    const outer = new CancelablePromise<string>((resolve) => resolve(inner));
+
+    expect(await outer).toBe('inner done');
+    expect(outer.cancel('why').status).toBe('resolved');
+  });
+});
+
 describe('promises chained from a canceled promise', () => {
   it('should be canceled when the promise they were created from is canceled', async () => {
     const cancelLogger = vi.fn();
@@ -220,6 +349,79 @@ describe('promises chained from a canceled promise', () => {
     expect(grandchild.status).toBe('canceled');
     expect(afterFinally.status).toBe('canceled');
     expect(cancelLogger).toHaveBeenCalledWith('reason');
+  });
+
+  describe('unhandled rejections', () => {
+    // the listeners of the test runner are set aside so the rejections can be counted here
+    const collect = async (run: () => void) => {
+      const reasons: unknown[] = [];
+      const listeners = process.listeners('unhandledRejection');
+      const listener = (reason: unknown) => reasons.push(reason);
+
+      process.removeAllListeners('unhandledRejection');
+      process.on('unhandledRejection', listener);
+
+      try {
+        run();
+
+        await new Promise((resolve) => setTimeout(resolve, 20));
+      } finally {
+        process.off('unhandledRejection', listener);
+        listeners.forEach((existing) =>
+          process.on('unhandledRejection', existing),
+        );
+      }
+
+      return reasons;
+    };
+
+    it('should report a chained promise that has no handler for the cancellation', async () => {
+      let chained: CancelablePromise<void>;
+
+      const reasons = await collect(() => {
+        const promise = new CancelablePromise<string>(() => {});
+
+        chained = promise.then(() => {});
+
+        promise.cancel('x');
+      });
+
+      expect(reasons).toEqual(['x']);
+      expect(chained.status).toBe('canceled');
+    });
+
+    it('should report only the last promise of a chain', async () => {
+      const reasons = await collect(() => {
+        const promise = new CancelablePromise<string>(() => {});
+
+        promise
+          .then(() => {})
+          .then(() => {})
+          .finally(() => {});
+
+        promise.cancel('x');
+      });
+
+      expect(reasons).toEqual(['x']);
+    });
+
+    it('should not report the promise that was canceled, nor a chain that handles it', async () => {
+      const reasons = await collect(() => {
+        const alone = new CancelablePromise<string>(() => {});
+        const withChain = new CancelablePromise<string>(() => {});
+        const fromTheEnd = new CancelablePromise<string>(() => {});
+
+        withChain.then(() => {}).catch(() => {});
+
+        alone.cancel('x');
+        withChain.cancel('x');
+
+        // cancel called on the chained promise: it is the one that was canceled
+        fromTheEnd.then(() => {}).cancel('x');
+      });
+
+      expect(reasons).toEqual([]);
+    });
   });
 
   it('should follow the handler that dealt with the cancellation', async () => {

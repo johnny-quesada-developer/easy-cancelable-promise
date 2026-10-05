@@ -26,7 +26,9 @@ export function DocsSidebar({ sections, currentId, drawer = false }: DocsSidebar
     <>
       <div className="mb-[22px] flex items-center justify-between gap-2 rounded-[4px] border border-line bg-soft px-[9px] py-2">
         <Badge className="border-0 bg-transparent p-0 text-10">Documentation</Badge>
-        <span className="font-mono text-10 text-muted">{PACKAGE_VERSION}</span>
+        <span className="font-mono text-10 text-muted" data-package-version>
+          {PACKAGE_VERSION}
+        </span>
       </div>
       {sections.map((section) => (
         <div className="my-5" key={section.title}>

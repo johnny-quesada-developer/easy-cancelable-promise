@@ -127,6 +127,13 @@ export class CancelablePromise<TResult = void> extends Promise<TResult> {
         return;
       }
 
+      // canceling this promise also cancels the CancelablePromise it was resolved with, a native promise cannot be canceled
+      if (isCancelablePromise(value)) {
+        this.subscribeToOwnCancelEvent((reason) => {
+          value.cancel(reason);
+        });
+      }
+
       // the status follows the promise used as result, the promise is still pending until then
       value.then(
         (result) =>
@@ -246,19 +253,30 @@ export class CancelablePromise<TResult = void> extends Promise<TResult> {
     // we cannot cancel promises that are completed
     if (this.status !== 'pending') return this;
 
+    // whoever cancels a promise does not have to catch its rejection
+    this.catch(() => {});
+
+    this.cancelWith(
+      reason === undefined ? new Error('Promise canceled') : reason,
+    );
+
+    return this;
+  }
+
+  /**
+   * Moves the promise to the canceled status: calls the cancel callbacks and rejects it with the reason.
+   * The rejection is a normal one, a promise without a handler for it reports an unhandled rejection.
+   */
+  private cancelWith(reason: unknown) {
     this.status = 'canceled';
-
-    const _reason =
-      reason === undefined ? new Error('Promise canceled') : reason;
-
-    this.cancelReason = _reason;
+    this.cancelReason = reason;
 
     // a callback that throws should not prevent the cancellation of the promise
     const errors: unknown[] = [];
 
     const execute = (callback: CancelCallback) => {
       try {
-        callback(_reason);
+        callback(reason);
       } catch (error) {
         errors.push(error);
       }
@@ -270,15 +288,12 @@ export class CancelablePromise<TResult = void> extends Promise<TResult> {
     // then the promise cancel second level subscribers
     this.cancelCallbacks.forEach(execute);
 
-    this.catch(() => {}); // avoid unhandled promise rejection
-    this._reject(_reason);
+    this._reject(reason);
 
     this.disposeCallbacks();
 
     // the first error is reported once the promise is canceled
     if (errors.length) throw errors[0];
-
-    return this;
   }
 
   /**
@@ -361,9 +376,10 @@ export class CancelablePromise<TResult = void> extends Promise<TResult> {
 
     // A promise chained from a canceled promise is canceled too.
     // If a handler of the chain dealt with the cancellation the chained promise follows that handler instead.
+    // Nobody called cancel on the chained promise, so its rejection has to be handled like any other.
     const rejectOrCancel: RejectCallback = (reason) => {
       if (this.status === 'canceled' && reason === this.cancelReason) {
-        promise.cancel(reason);
+        promise.cancelWith(reason);
 
         return;
       }
