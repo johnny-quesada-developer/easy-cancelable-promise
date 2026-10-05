@@ -42,18 +42,24 @@ export const groupAsCancelablePromise = <TResult extends Array<unknown>>(
     onQueueEmptyCallback = null,
   } = config;
 
-  const queue = [...sources];
+  const queue = sources.map((source, index) => ({ source, index }));
   const results: TResult = [] as TResult;
+  let resultsLength = 0;
 
-  return new CancelablePromise<TResult>((resolve, _, promiseUtils) => {
+  // executeInOrder: each source starts when the previous one is completed
+  // a batch needs at least one source, otherwise the queue would never be consumed
+  const batchSize = executeInOrder ? 1 : Math.max(1, maxConcurrent);
+
+  return new CancelablePromise<TResult>((resolve, reject, promiseUtils) => {
     const loadCallbacksBatchAsync = () => {
-      if (!queue.length) return;
+      // the group does not start more sources once it is rejected or canceled
+      if (!queue.length || !promiseUtils.isPending()) return;
 
       // Execute the first batch of callbacks from the queue
-      const promises = queue.splice(0, maxConcurrent).map((source) => {
-        const result = typeof source === 'function' ? source() : source;
-
+      const promises = queue.splice(0, batchSize).map(({ source, index }) => {
         beforeEachCallback?.();
+
+        const result = typeof source === 'function' ? source() : source;
 
         const promise = toCancelablePromise(result);
 
@@ -62,22 +68,33 @@ export const groupAsCancelablePromise = <TResult extends Array<unknown>>(
           promise.cancel(reason);
         });
 
-        promise.then((result) => {
-          // Cannot cancel after resolution
-          unsubscribeCancel();
+        return promise.then(
+          (result) => {
+            // Cannot cancel after resolution
+            unsubscribeCancel();
 
-          results.push(result as unknown as TResult[0]);
+            // the results keep the position of their sources
+            results[index] = result as unknown as TResult[number];
+            resultsLength++;
 
-          afterEachCallback?.(result);
+            afterEachCallback?.(result);
 
-          // Report overall progress
-          promiseUtils.reportProgress(
-            ((results.length ?? 1) / (sources.length ?? 1)) * 100,
-          );
-        });
+            // Report overall progress
+            promiseUtils.reportProgress((resultsLength / sources.length) * 100);
+          },
+          (reason) => {
+            unsubscribeCancel();
 
-        // If executeInOrder is true, wait for each promise before continuing
-        return executeInOrder ? promise.then((result) => result) : promise;
+            if (promise.status === 'canceled') {
+              // a canceled source cancels the group, same as CancelablePromise.all
+              promiseUtils.cancel(reason);
+
+              return;
+            }
+
+            reject(reason);
+          },
+        );
       });
 
       return Promise.all(promises).then(() => {
@@ -87,11 +104,14 @@ export const groupAsCancelablePromise = <TResult extends Array<unknown>>(
     };
 
     loadCallbacksBatchAsync().then(() => {
+      // one of the sources was rejected or canceled
+      if (!promiseUtils.isPending()) return;
+
       onQueueEmptyCallback?.(results);
 
       // Once the queue is empty, resolve with all results
       resolve(results);
-    });
+    }, reject);
   });
 };
 

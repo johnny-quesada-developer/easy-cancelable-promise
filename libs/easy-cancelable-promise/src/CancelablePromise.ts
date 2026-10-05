@@ -2,6 +2,7 @@ import type {
   Subscription,
   CancelCallback,
   CancelablePromiseCallback,
+  CancelablePromiseUtils,
   OnProgressCallback,
   PromiseStatus,
   RejectCallback,
@@ -98,48 +99,81 @@ export class CancelablePromise<TResult = void> extends Promise<TResult> {
     this._resolve = resolve;
     this._reject = reject;
 
+    // Only the first call to resolve or reject is considered, same as the native Promise
+    let isLocked = false;
+
+    const complete = (status: PromiseStatus, settle: () => void) => {
+      // the promise could be canceled while it was waiting for a promise used as result
+      if (this.status !== 'pending') return;
+
+      this.status = status;
+      this.disposeCallbacks();
+
+      settle();
+    };
+
+    const resolveCallback: ResolveCallback<TResult> = (value) => {
+      if (isLocked || this.status !== 'pending') return;
+
+      isLocked = true;
+
+      if (!isPromise(value)) {
+        complete('resolved', () => this._resolve(value));
+
+        return;
+      }
+
+      // the status follows the promise used as result, the promise is still pending until then
+      value.then(
+        (result) =>
+          complete('resolved', () => this._resolve(result as TResult)),
+        (reason) => complete('rejected', () => this._reject(reason)),
+      );
+    };
+
+    const rejectCallback: RejectCallback = (reason) => {
+      if (isLocked || this.status !== 'pending') return;
+
+      isLocked = true;
+
+      complete('rejected', () => this._reject(reason));
+    };
+
+    const utils: CancelablePromiseUtils<TResult> = {
+      cancel: (reason) => {
+        return this.cancel(reason);
+      },
+      onCancel: (callback) => {
+        return this.subscribeToOwnCancelEvent(callback);
+      },
+      onProgress: (callback) => {
+        this.onProgress(callback);
+
+        return () => {
+          this.onProgressCallbacks.delete(callback);
+        };
+      },
+      reportProgress: (percentage, metadata) => {
+        this.reportProgress(percentage, metadata);
+      },
+      status: () => {
+        return this.status;
+      },
+      isCanceled: () => {
+        return this.status === 'canceled';
+      },
+      isPending: () => {
+        return this.status === 'pending';
+      },
+    };
+
     // Execute the custom callback with cancelable utilities
-    callback(
-      (value) => {
-        this.status = 'resolved';
-        this.disposeCallbacks();
-
-        this._resolve(value);
-      },
-      (reason) => {
-        this.status = 'rejected';
-        this.disposeCallbacks();
-
-        this._reject(reason);
-      },
-      {
-        cancel: (reason) => {
-          return this.cancel(reason);
-        },
-        onCancel: (callback) => {
-          return this.subscribeToOwnCancelEvent(callback);
-        },
-        onProgress: (callback) => {
-          this.onProgress(callback);
-
-          return () => {
-            this.onProgressCallbacks.delete(callback);
-          };
-        },
-        reportProgress: (percentage, metadata) => {
-          this.reportProgress(percentage, metadata);
-        },
-        status: () => {
-          return this.status;
-        },
-        isCanceled: () => {
-          return this.status === 'canceled';
-        },
-        isPending: () => {
-          return this.status === 'pending';
-        },
-      },
-    );
+    try {
+      callback(resolveCallback, rejectCallback, utils);
+    } catch (error) {
+      // a callback that throws rejects the promise, same as the native Promise
+      rejectCallback(error);
+    }
 
     // Override the then method to return a CancelablePromise.
     // We need to override this here to avoid the bundler to polyfill the Promise.
@@ -210,16 +244,30 @@ export class CancelablePromise<TResult = void> extends Promise<TResult> {
     const _reason =
       reason === undefined ? new Error('Promise canceled') : reason;
 
+    // a callback that throws should not prevent the cancellation of the promise
+    const errors: unknown[] = [];
+
+    const execute = (callback: CancelCallback) => {
+      try {
+        callback(_reason);
+      } catch (error) {
+        errors.push(error);
+      }
+    };
+
     // the own promise cancel callbacks are called first
-    this.ownCancelCallbacks.forEach((callback) => callback(_reason));
+    this.ownCancelCallbacks.forEach(execute);
 
     // then the promise cancel second level subscribers
-    this.cancelCallbacks.forEach((callback) => callback(_reason));
+    this.cancelCallbacks.forEach(execute);
 
     this.catch(() => {}); // avoid unhandled promise rejection
     this._reject(_reason);
 
     this.disposeCallbacks();
+
+    // the first error is reported once the promise is canceled
+    if (errors.length) throw errors[0];
 
     return this;
   }
@@ -452,14 +500,16 @@ export class CancelablePromise<TResult = void> extends Promise<TResult> {
 
     return new CancelablePromise<Result>(
       (resolve, reject, { onCancel, cancel: parentCancel }) => {
-        const results: Map<CancelablePromise<unknown>, unknown> = new Map();
+        // the results are stored by position, the same promise can be more than once in the values
+        const results: unknown[] = new Array(values.length).fill(null);
         const promisesLength = values.length;
         let resultsLength = 0;
 
-        values.forEach((promise) => {
-          const cancelable = toCancelablePromise<unknown, unknown>(promise);
+        // same as the native Promise.all
+        if (!promisesLength) return resolve(results as Result);
 
-          results.set(cancelable, null);
+        values.forEach((promise, index) => {
+          const cancelable = toCancelablePromise<unknown, unknown>(promise);
 
           onCancel((reason) => {
             cancelable.cancel(reason);
@@ -468,13 +518,13 @@ export class CancelablePromise<TResult = void> extends Promise<TResult> {
           cancelable.then(
             (result) => {
               resultsLength++;
-              results.set(cancelable, result);
+              results[index] = result;
 
               const isAllResolved = resultsLength === promisesLength;
 
               if (!isAllResolved) return;
 
-              resolve(Array.from(results.values()) as Result);
+              resolve(results as Result);
             },
             (reason) => {
               if (cancelable.status === 'canceled') {
@@ -509,18 +559,19 @@ export class CancelablePromise<TResult = void> extends Promise<TResult> {
     };
 
     return new CancelablePromise<Result>((resolve, _, { onCancel }) => {
-      const results: Map<
-        CancelablePromise<unknown>,
-        PromiseSettledResult<unknown>
-      > = new Map();
+      // the results are stored by position, the same promise can be more than once in the values
+      const results: PromiseSettledResult<unknown>[] = new Array(
+        values.length,
+      ).fill(null);
 
       const promisesLength = values.length;
       let resultsLength = 0;
 
-      values.forEach((value) => {
-        const cancelable = toCancelablePromise<unknown, unknown>(value);
+      // same as the native Promise.allSettled
+      if (!promisesLength) return resolve(results as Result);
 
-        results.set(cancelable, null);
+      values.forEach((value, index) => {
+        const cancelable = toCancelablePromise<unknown, unknown>(value);
 
         onCancel((reason) => {
           cancelable.cancel(reason);
@@ -529,18 +580,18 @@ export class CancelablePromise<TResult = void> extends Promise<TResult> {
         cancelable
           .then(
             (result) => {
-              results.set(cancelable, {
+              results[index] = {
                 status: 'fulfilled',
                 value: result,
-              });
+              };
             },
             (reason) => {
-              results.set(cancelable, {
+              results[index] = {
                 status: (cancelable.status === 'canceled'
                   ? 'canceled'
                   : ('rejected' as unknown)) as 'rejected',
                 reason,
-              });
+              };
             },
           )
           .finally(() => {
@@ -550,7 +601,7 @@ export class CancelablePromise<TResult = void> extends Promise<TResult> {
 
             if (!isAllResolved) return;
 
-            resolve(Array.from(results.values()) as Result);
+            resolve(results as Result);
           });
       });
     });

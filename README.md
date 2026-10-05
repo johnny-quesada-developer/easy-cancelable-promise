@@ -39,7 +39,9 @@ const fetchUser = new CancelablePromise(
 
     onCancel(() => controller.abort());
 
-    const user = await fetch('/api/user', controller).then((res) => res.json());
+    const user = await fetch('/api/user', { signal: controller.signal }).then(
+      (res) => res.json(),
+    );
 
     resolve(user);
   },
@@ -123,8 +125,9 @@ console.log(promise.status); // 'pending'
 await promise;
 console.log(promise.status); // 'resolved'
 
-promise.cancel();
-console.log(promise.status); // 'canceled'
+// a pending promise can be canceled
+otherPromise.cancel();
+console.log(otherPromise.status); // 'canceled'
 ```
 
 Track state throughout the entire lifecycle!
@@ -624,25 +627,32 @@ groupAsCancelablePromise(tasks, {
   // Max concurrent executions (default: 8)
   maxConcurrent: 3,
 
-  // Execute in order (default: false)
+  // Start each task only after the previous one finished (default: false)
   executeInOrder: true,
 
-  // Called before each task
-  beforeEachCallback: (index) => {
-    console.log(`Starting task ${index}`);
+  // Called before each task starts
+  beforeEachCallback: () => {
+    console.log('Starting a task');
   },
 
-  // Called after each success
-  afterEachCallback: (result, index) => {
-    console.log(`Task ${index} completed:`, result);
+  // Called after each success, with the result of the task
+  afterEachCallback: (result) => {
+    console.log('Task completed:', result);
   },
 
-  // Called when queue is empty
-  onQueueEmptyCallback: () => {
-    console.log('All tasks complete!');
+  // Called once all the tasks are completed, with all the results
+  onQueueEmptyCallback: (results) => {
+    console.log('All tasks complete!', results);
   },
 });
 ```
+
+Good to know:
+
+- The results keep the position of their tasks, no matter which one finishes first.
+- If a task is rejected, the group is rejected with the same reason and no more tasks are started.
+- If the group is canceled, the pending tasks are canceled. If a task is canceled, the group is canceled.
+- An empty list of tasks returns `null`.
 
 #### 🎯 Real-World: Batch Processing
 
@@ -650,15 +660,20 @@ groupAsCancelablePromise(tasks, {
 async function processBatch(items: Item[]) {
   const tasks = items.map((item) => () => api.processAndSaveItem(item)); // returns CancelablePromise
 
+  let started = 0;
+  let processed = 0;
+
   return groupAsCancelablePromise(tasks, {
     maxConcurrent: 5,
 
-    beforeEachCallback: (index) => {
-      updateProgress(`Processing item ${index + 1}/${items.length}`);
+    beforeEachCallback: () => {
+      started++;
+      updateProgress(`Processing item ${started}/${items.length}`);
     },
 
-    afterEachCallback: (result, index) => {
-      logSuccess(`Item ${index + 1} processed`);
+    afterEachCallback: (result) => {
+      processed++;
+      logSuccess(`${processed} items processed`);
     },
   });
 }
@@ -684,12 +699,11 @@ const results = await batch;
 const tasks = [() => step1(), () => step2(), () => step3()];
 
 const sequential = groupAsCancelablePromise(tasks, {
-  maxConcurrent: 1,
   executeInOrder: true,
 });
 
 // Guaranteed to execute in order, one at a time
-const results = await sequential;
+const results = await sequential; // [result1, result2, result3]
 ```
 
 ---

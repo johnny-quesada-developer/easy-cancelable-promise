@@ -1,0 +1,201 @@
+import { CancelablePromise, defer } from 'easy-cancelable-promise';
+
+const nextTick = () => new Promise<void>((resolve) => setTimeout(resolve, 0));
+
+describe('CancelablePromise settle rules', () => {
+  it('should ignore resolve after the promise was canceled', async () => {
+    const deferred = defer<string>();
+
+    deferred.cancel('reason');
+    deferred.resolve('result');
+
+    expect(deferred.promise.status).toBe('canceled');
+    await expect(deferred.promise).rejects.toBe('reason');
+  });
+
+  it('should ignore reject after the promise was canceled', async () => {
+    const deferred = defer<string>();
+
+    deferred.cancel('reason');
+    deferred.reject('error');
+
+    expect(deferred.promise.status).toBe('canceled');
+    await expect(deferred.promise).rejects.toBe('reason');
+  });
+
+  it('should ignore reject after the promise was resolved', async () => {
+    const deferred = defer<string>();
+
+    deferred.resolve('result');
+    deferred.reject('error');
+
+    expect(deferred.promise.status).toBe('resolved');
+    expect(await deferred.promise).toBe('result');
+  });
+
+  it('should ignore resolve after the promise was rejected', async () => {
+    const deferred = defer<string>();
+
+    deferred.reject('error');
+    deferred.resolve('result');
+
+    expect(deferred.promise.status).toBe('rejected');
+    await expect(deferred.promise).rejects.toBe('error');
+  });
+
+  it('should only consider the first resolved value', async () => {
+    const deferred = defer<string>();
+
+    deferred.resolve('first');
+    deferred.resolve('second');
+
+    expect(await deferred.promise).toBe('first');
+  });
+
+  it('should keep the callbacks until the promise is settled', async () => {
+    const cancelLogger = vi.fn();
+    const deferred = defer<string>();
+
+    deferred.promise.onCancel(cancelLogger);
+    deferred.resolve('result');
+    deferred.promise.cancel();
+
+    expect(cancelLogger).not.toHaveBeenCalled();
+    expect(await deferred.promise).toBe('result');
+  });
+
+  it('should follow the status of a promise used as result', async () => {
+    const resolved = new CancelablePromise<string>((resolve) =>
+      resolve(Promise.resolve('result')),
+    );
+
+    const rejected = new CancelablePromise<string>((resolve) =>
+      resolve(Promise.reject('error')),
+    );
+
+    expect(resolved.status).toBe('pending');
+    expect(rejected.status).toBe('pending');
+
+    expect(await resolved).toBe('result');
+    await expect(rejected).rejects.toBe('error');
+
+    expect(resolved.status).toBe('resolved');
+    expect(rejected.status).toBe('rejected');
+  });
+
+  it('should be cancelable while it waits for a promise used as result', async () => {
+    const cancelLogger = vi.fn();
+    const inner = defer<string>();
+
+    const promise = new CancelablePromise<string>(
+      (resolve, _, { onCancel }) => {
+        onCancel(cancelLogger);
+
+        resolve(inner.promise);
+      },
+    );
+
+    await expect(promise.cancel('reason')).rejects.toBe('reason');
+
+    inner.resolve('result');
+    await nextTick();
+
+    expect(promise.status).toBe('canceled');
+    expect(cancelLogger).toHaveBeenCalledWith('reason');
+  });
+
+  it('should reject the promise when the callback throws', async () => {
+    const error = new Error('callback error');
+
+    const promise = new CancelablePromise<string>(() => {
+      throw error;
+    });
+
+    expect(promise.status).toBe('rejected');
+    await expect(promise).rejects.toBe(error);
+  });
+
+  it('should ignore an error of the callback after the promise was resolved', async () => {
+    const promise = new CancelablePromise<string>((resolve) => {
+      resolve('result');
+
+      throw new Error('callback error');
+    });
+
+    expect(promise.status).toBe('resolved');
+    expect(await promise).toBe('result');
+  });
+
+  it('should cancel the promise even if a cancel callback throws', async () => {
+    const error = new Error('listener error');
+    const ownLogger = vi.fn();
+    const firstLogger = vi.fn(() => {
+      throw error;
+    });
+    const secondLogger = vi.fn();
+
+    const promise = new CancelablePromise<string>((_, __, { onCancel }) => {
+      onCancel(ownLogger);
+    })
+      .onCancel(firstLogger)
+      .onCancel(secondLogger);
+
+    // the error of the callback is reported once the promise is canceled
+    expect(() => promise.cancel('reason')).toThrow(error);
+
+    expect(promise.status).toBe('canceled');
+    expect(ownLogger).toHaveBeenCalledWith('reason');
+    expect(firstLogger).toHaveBeenCalledWith('reason');
+    expect(secondLogger).toHaveBeenCalledWith('reason');
+
+    await expect(promise).rejects.toBe('reason');
+  });
+});
+
+describe('CancelablePromise statics with special collections', () => {
+  it('all should resolve an empty collection', async () => {
+    const promise = CancelablePromise.all([]);
+
+    expect(await promise).toEqual([]);
+    expect(promise.status).toBe('resolved');
+  });
+
+  it('allSettled should resolve an empty collection', async () => {
+    const promise = CancelablePromise.allSettled([]);
+
+    expect(await promise).toEqual([]);
+    expect(promise.status).toBe('resolved');
+  });
+
+  it('race should stay pending with an empty collection, same as the native Promise', async () => {
+    const promise = CancelablePromise.race([]);
+
+    await nextTick();
+
+    expect(promise.status).toBe('pending');
+  });
+
+  it('all should keep a result for each value when a promise is repeated', async () => {
+    const repeated = CancelablePromise.resolve(1);
+    const slow = new CancelablePromise<number>((resolve) =>
+      setTimeout(() => resolve(2), 5),
+    );
+
+    expect(await CancelablePromise.all([repeated, slow, repeated, 3])).toEqual([
+      1, 2, 1, 3,
+    ]);
+  });
+
+  it('allSettled should keep a result for each value when a promise is repeated', async () => {
+    const repeated = CancelablePromise.resolve(1);
+    const rejected = CancelablePromise.reject('error');
+
+    expect(
+      await CancelablePromise.allSettled([repeated, rejected, repeated]),
+    ).toEqual([
+      { status: 'fulfilled', value: 1 },
+      { status: 'rejected', reason: 'error' },
+      { status: 'fulfilled', value: 1 },
+    ]);
+  });
+});
