@@ -73,7 +73,8 @@ to `resolve`, `reject` and `cancel` are ignored and the status does not change.
 <CodeBlock code={settleOnce} lang="ts" title="settle-once.ts" />
 
 Resolving with another promise does not settle it yet. The promise stays `pending`, and can still be canceled,
-until the promise you passed settles.
+until the promise you passed settles. Canceling it also cancels the promise you passed, when that one is a
+`CancelablePromise`. A native promise cannot be canceled: its result is ignored.
 
 ## When the callback throws
 

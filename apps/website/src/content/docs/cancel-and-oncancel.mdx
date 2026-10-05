@@ -52,8 +52,8 @@ For `await` and `catch` a canceled promise is a rejected promise. Read `status` 
 
 ## No unhandled rejection
 
-Canceling a promise never reports an unhandled rejection, even if nothing catches it. The same holds for the
-promises chained from it, which are canceled with it.
+The promise you call `cancel` on never reports an unhandled rejection, even if nothing catches it. A promise
+chained from it is canceled too, but its rejection follows the normal rules: without a handler it is reported.
 
 <CodeBlock code={unhandled} lang="ts" title="unhandled.ts" />
 
