@@ -1,0 +1,56 @@
+---
+title: defer and DeferredPromise
+short: defer
+description: Create a CancelablePromise whose resolve, reject and utilities live outside its callback, for events, queues and tests.
+section: Core concepts
+order: 4
+---
+
+import { CodeBlock } from '../../ui/CodeBlock';
+import { Callout } from '../../ui/Callout';
+import basic from '@snippets/defer/basic.ts?raw';
+import event from '@snippets/defer/event.ts?raw';
+import utils from '@snippets/defer/utils.ts?raw';
+
+## A promise with its controls outside
+
+Sometimes the code that settles a promise is not the code that creates it: an event handler, a message from
+another window, a test. `defer` returns the promise together with its controls.
+
+<CodeBlock code={basic} lang="ts" title="defer.ts" />
+
+## What defer returns
+
+`defer<T>()` returns a `DeferredPromise<T>`: the promise, `resolve`, `reject`, and the same utilities the
+callback of a `CancelablePromise` receives.
+
+| Property         | What it is                                                         |
+| ---------------- | ------------------------------------------------------------------ |
+| `promise`        | The `CancelablePromise`                                            |
+| `resolve`        | Resolves the promise                                               |
+| `reject`         | Rejects the promise                                                |
+| `cancel`         | Cancels the promise. Returns the promise                           |
+| `onCancel`       | Registers a cancel listener. Returns a function to remove it       |
+| `onProgress`     | Registers a progress listener. Returns a function to remove it     |
+| `reportProgress` | Sends progress to the listeners                                    |
+| `status`         | Returns the current status                                         |
+| `isPending`      | `true` while the promise is not settled                            |
+| `isCanceled`     | `true` after the promise was canceled                              |
+
+<CodeBlock code={utils} lang="ts" title="utilities.ts" />
+
+<Callout type="note" title="onCancel here returns the unsubscribe function">
+  `deferred.onCancel` is the utility, so it returns a function that removes the listener.
+  `deferred.promise.onCancel` is the method of the promise, so it returns the promise.
+</Callout>
+
+## Resolve from an event
+
+A deferred promise turns an event into something you can `await`, with a timeout that cancels it.
+
+<CodeBlock code={event} lang="ts" title="waitForClick.ts" />
+
+## Next
+
+- [Static helpers](../static-helpers/)
+- [Testing](../testing/): `defer` is the simplest way to hand a controlled promise to the code under test.

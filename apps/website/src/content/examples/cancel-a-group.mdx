@@ -1,0 +1,49 @@
+---
+title: Cancel a group
+headline: Six tasks, one cancel
+description: Six tasks, two at a time, in a queue written with native promises and in groupAsCancelablePromise. Press Stop and see which tasks still start.
+order: 3
+category: Groups
+thumb: group
+outcome: A group is one promise. Canceling it cancels the tasks that run and never starts the ones that wait.
+points:
+  - Press Start both, then Stop both while the first tasks run. The cancelable group marks its running tasks as canceled and the rest as never started.
+  - Look at Started after Stop on the native side. The queue keeps starting tasks, because nothing can reach it.
+  - Run it to the end. Both find the same primes, and the group returns them in the order of the tasks.
+sources:
+  - file: group/GroupDemo.tsx
+    title: GroupDemo.tsx
+  - file: group/batches.ts
+    title: batches.ts
+  - file: shared/search.ts
+    title: search.ts
+guide: groups-and-concurrency
+related:
+  - label: Groups and concurrency
+    href: ../../docs/groups-and-concurrency/
+  - label: Static helpers
+    href: ../../docs/static-helpers/
+  - label: cancel and onCancel
+    href: ../../docs/cancel-and-oncancel/
+---
+
+import { CodeBlock } from '../../ui/CodeBlock';
+import { Callout } from '../../ui/Callout';
+import batches from '@examples/group/batches.ts?raw';
+import demo from '@examples/group/GroupDemo.tsx?raw';
+
+## The code
+
+This is the queue written by hand with native promises: batches of two, one batch after the other. It works,
+and it cannot be stopped.
+
+<CodeBlock code={batches} lang="ts" title="batches.ts" />
+
+`groupAsCancelablePromise` does the same with one call, and returns a promise that can be canceled.
+
+<CodeBlock code={demo} lang="tsx" title="GroupDemo.tsx" />
+
+<Callout type="note" title="What happens on cancel">
+  The group cancels the tasks that are running, which runs their own `onCancel` cleanup, and it does not call
+  the functions that are still in the queue. The tasks that already finished keep their result.
+</Callout>

@@ -1,0 +1,89 @@
+---
+title: cancel and onCancel
+short: cancel and onCancel
+description: Cancel a promise from anywhere, stop its work with onCancel, pass a reason, remove listeners and tell a cancellation from a failure.
+section: Core concepts
+order: 2
+---
+
+import { CodeBlock } from '../../ui/CodeBlock';
+import { Callout } from '../../ui/Callout';
+import inside from '@snippets/cancel/on-cancel-inside.ts?raw';
+import outside from '@snippets/cancel/on-cancel-outside.ts?raw';
+import reason from '@snippets/cancel/reason.ts?raw';
+import handle from '@snippets/cancel/handle.ts?raw';
+import unhandled from '@snippets/cancel/unhandled.ts?raw';
+import unsubscribe from '@snippets/cancel/unsubscribe.ts?raw';
+import selfCancel from '@snippets/cancel/self-cancel.ts?raw';
+import listenerThrows from '@snippets/cancel/listener-throws.ts?raw';
+
+## Two halves of one feature
+
+`cancel` says "nobody needs this result any more". `onCancel` is where the promise reacts to that. A promise
+without an `onCancel` listener is still canceled, but whatever it started keeps running.
+
+## Clean up inside the promise
+
+Register the cleanup in the callback, next to the thing that needs it.
+
+<CodeBlock code={inside} lang="ts" title="openSocket.ts" />
+
+Whoever cancels the promise does not need to know there is a socket. That is the point: the knowledge of how to
+stop the work stays with the code that started it.
+
+## Listen from outside
+
+`onCancel` is also a method of the promise. It returns the promise, so listeners can be chained. The listeners
+registered inside the callback run first.
+
+<CodeBlock code={outside} lang="ts" title="listeners.ts" />
+
+## The reason
+
+`cancel` accepts a reason. The promise rejects with it, and every listener receives it.
+
+<CodeBlock code={reason} lang="ts" title="reason.ts" />
+
+## A cancellation is not a failure
+
+For `await` and `catch` a canceled promise is a rejected promise. Read `status` to know which one it was.
+
+<CodeBlock code={handle} lang="ts" title="load.ts" />
+
+## No unhandled rejection
+
+Canceling a promise never reports an unhandled rejection, even if nothing catches it. Promises you chain from
+it are yours to handle.
+
+<CodeBlock code={unhandled} lang="ts" title="unhandled.ts" />
+
+## Remove a listener
+
+Inside the callback, `onCancel` returns the function that removes the listener. Outside, pass a signal.
+
+<CodeBlock code={unsubscribe} lang="ts" title="unsubscribe.ts" />
+
+This is how a promise changes its cleanup as the work advances: abort the request while it downloads, delete
+the temporary file while it saves. See [Abort signals](../abort-signals/) for the controller.
+
+## Cancel from inside
+
+The utilities include `cancel`, so a promise can give up by itself.
+
+<CodeBlock code={selfCancel} lang="ts" title="withTimeout.ts" />
+
+## When a listener throws
+
+A listener that throws does not stop the cancellation. The other listeners are still called and the promise is
+canceled. `cancel` then throws the first error, so it is not lost.
+
+<CodeBlock code={listenerThrows} lang="ts" title="listener-throws.ts" />
+
+<Callout type="note" title="Canceling a settled promise">
+  `cancel` on a promise that is already resolved, rejected or canceled does nothing and returns the promise.
+</Callout>
+
+## Next
+
+- [Progress reporting](../progress-reporting/)
+- [Stop the work](../../examples/stop-the-work/): the live example of this page.

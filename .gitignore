@@ -9,6 +9,12 @@ artifacts/
 
 # test / coverage output
 **/coverage/
+playwright-report/
+test-results/
+
+# website
+.astro/
+apps/website/public/pagefind/
 
 # Nx cache and workspace data
 .nx/cache

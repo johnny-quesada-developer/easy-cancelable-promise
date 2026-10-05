@@ -4,7 +4,8 @@
   "private": true,
   "description": "Monorepo for the easy-cancelable-promise package.",
   "workspaces": [
-    "libs/*"
+    "libs/*",
+    "apps/*"
   ],
   "scripts": {
     "test": "node scripts/run.mjs test",
@@ -14,16 +15,22 @@
     "test:debug": "node scripts/run.mjs test:debug",
     "test:coverage": "node scripts/run.mjs test:coverage",
     "test:interop": "node scripts/run.mjs test:interop",
+    "test:visual": "node scripts/run.mjs test:visual",
+    "test:visual:update": "node scripts/run.mjs test:visual:update",
+    "check:links": "node scripts/run.mjs check:links",
     "build": "node scripts/run.mjs build",
+    "dev": "node scripts/run.mjs dev",
+    "preview": "node scripts/run.mjs preview",
     "clean": "node scripts/run.mjs clean",
     "ts-check": "node scripts/run.mjs ts-check",
     "ts-check:tests": "node scripts/run.mjs ts-check:tests",
     "prepare-packages": "node scripts/run.mjs validate",
     "tarball": "node scripts/tarball.mjs",
+    "version-bump": "node scripts/version-bump.mjs",
     "publish:pkg": "node scripts/run.mjs publish:pkg",
     "publish:beta": "node scripts/run.mjs publish:beta",
     "publish:dry-run": "NPM_DRY_RUN=1 node scripts/run.mjs publish:pkg",
-    "prepare": "npm run build",
+    "prepare": "node scripts/run.mjs build easy-cancelable-promise",
     "lint": "node scripts/run.mjs lint",
     "lint:fix": "node scripts/run.mjs lint:fix",
     "format": "node scripts/run.mjs format",

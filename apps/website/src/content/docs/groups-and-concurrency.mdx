@@ -1,0 +1,69 @@
+---
+title: Groups and concurrency
+short: Groups
+description: Run a list of tasks with groupAsCancelablePromise, limit how many run at once, follow their progress and cancel all of them with one call.
+section: Guides
+order: 2
+---
+
+import { CodeBlock } from '../../ui/CodeBlock';
+import { Callout } from '../../ui/Callout';
+import basic from '@snippets/group/basic.ts?raw';
+import cancel from '@snippets/group/cancel.ts?raw';
+import config from '@snippets/group/config.ts?raw';
+import sequential from '@snippets/group/sequential.ts?raw';
+import errors from '@snippets/group/errors.ts?raw';
+
+## One promise for many tasks
+
+`groupAsCancelablePromise` takes a list of tasks and returns one `CancelablePromise` that resolves with all the
+results. A task is a function that returns a promise, or a promise that is already running.
+
+<CodeBlock code={basic} lang="ts" title="group.ts" />
+
+- A function is called when its turn arrives. That is what makes the concurrency limit work.
+- The results keep the position of their tasks, no matter which one finishes first.
+- The group reports its progress: the percentage of tasks completed.
+
+<Callout type="warning" title="An empty list returns null">
+  `groupAsCancelablePromise([])` returns `null`, not a promise. Check the result, or the length of the list,
+  before using it.
+</Callout>
+
+## Cancel the group
+
+One call cancels the tasks that are running and leaves the tasks in the queue unstarted.
+
+<CodeBlock code={cancel} lang="ts" title="cancel-group.ts" />
+
+It also works the other way: if one task is canceled, the group is canceled, and that cancels the rest.
+
+## When a task fails
+
+If a task is rejected, the group is rejected with the same reason and no more tasks are started. Tasks that are
+already running are not canceled.
+
+<CodeBlock code={errors} lang="ts" title="errors.ts" />
+
+## Configuration
+
+<CodeBlock code={config} lang="ts" title="config.ts" />
+
+| Option                 | Default | Purpose                                                              |
+| ---------------------- | ------- | -------------------------------------------------------------------- |
+| `maxConcurrent`        | `8`     | How many tasks run at the same time. Values below `1` behave as `1`  |
+| `executeInOrder`       | `false` | Starts each task only after the previous one finished                |
+| `beforeEachCallback`   | none    | Called before each task starts                                       |
+| `afterEachCallback`    | none    | Called after each task that succeeded, with its result               |
+| `onQueueEmptyCallback` | none    | Called once, when every task succeeded, with all the results         |
+
+Tasks run in batches of `maxConcurrent`: the next batch starts when every task of the current one finished.
+
+## One at a time, in order
+
+<CodeBlock code={sequential} lang="ts" title="sequential.ts" />
+
+## Next
+
+- [Cancel a group](../../examples/cancel-a-group/): the live example of this page.
+- [Static helpers](../static-helpers/): `CancelablePromise.all` when you do not need a concurrency limit.

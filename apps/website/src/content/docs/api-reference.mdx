@@ -1,0 +1,234 @@
+---
+title: API reference
+description: Every export of easy-cancelable-promise in one place. CancelablePromise, defer, groupAsCancelablePromise, toCancelablePromise, the type guards, CancelableAbortController and the types.
+section: API reference
+order: 1
+---
+
+import { Callout } from '../../ui/Callout';
+
+## Exports
+
+```ts
+import {
+  CancelablePromise,
+  defer,
+  groupAsCancelablePromise,
+  toCancelablePromise,
+  isCancelablePromise,
+  isPromise,
+  CancelableAbortController,
+  isCancelableAbortSignal,
+} from 'easy-cancelable-promise';
+```
+
+`CancelablePromise` is also the default export. Every module is its own entry too, for example
+`easy-cancelable-promise/defer`. See [TypeScript](../typescript/#entries-of-the-package).
+
+## CancelablePromise
+
+```ts
+import { CancelablePromise } from 'easy-cancelable-promise';
+```
+
+A class that extends `Promise<T>`.
+
+### Constructor
+
+`new CancelablePromise<T>(callback)`
+
+The callback receives `resolve`, `reject` and the utilities.
+
+| Parameter | Type                          | Purpose                                                    |
+| --------- | ----------------------------- | ---------------------------------------------------------- |
+| `resolve` | `ResolveCallback<T>`          | Resolves the promise with a value or with another promise  |
+| `reject`  | `RejectCallback`              | Rejects the promise                                        |
+| `utils`   | `CancelablePromiseUtils<T>`   | The utilities below                                        |
+
+| Utility                               | Returns                 | Purpose                                         |
+| ------------------------------------- | ----------------------- | ----------------------------------------------- |
+| `utils.cancel(reason?)`               | The promise             | Cancels the promise from inside                 |
+| `utils.onCancel(callback)`            | `Subscription`          | Listens to the cancellation                     |
+| `utils.onProgress(callback)`          | `Subscription`          | Listens to the progress                         |
+| `utils.reportProgress(value, metadata?)` | `void`               | Sends progress to the listeners                 |
+| `utils.status()`                      | `PromiseStatus`         | The current status                              |
+| `utils.isPending()`                   | `boolean`               | `true` while the promise is not settled         |
+| `utils.isCanceled()`                  | `boolean`               | `true` after the promise was canceled           |
+
+An error thrown by the callback rejects the promise.
+
+### Instance members
+
+| Member                                | Returns                    | Purpose                                                         |
+| ------------------------------------- | -------------------------- | --------------------------------------------------------------- |
+| `status`                              | `PromiseStatus`            | `'pending'`, `'resolved'`, `'rejected'` or `'canceled'`           |
+| `cancel(reason?)`                     | The promise                | Cancels a pending promise. Default reason: `new Error('Promise canceled')` |
+| `onCancel(callback, { signal }?)`     | The promise                | Listens to the cancellation                                     |
+| `onProgress(callback, { signal }?)`   | The promise                | Listens to the progress                                         |
+| `reportProgress(value, metadata?)`    | The promise                | Sends progress to the listeners                                 |
+| `then(onFulfilled?, onRejected?)`     | `CancelablePromise`        | Same as `Promise`. Canceling the result cancels this promise    |
+| `catch(onRejected?)`                  | `CancelablePromise`        | Same as `Promise`                                               |
+| `finally(onFinally?)`                 | `CancelablePromise`        | Same as `Promise`                                               |
+
+`cancel` calls the listeners registered through the utilities first, then the listeners registered on the
+promise, and then rejects the promise with the reason. If a listener throws, `cancel` throws that error after
+the promise is canceled.
+
+### Static methods
+
+| Method                                 | Returns                                                                |
+| -------------------------------------- | ---------------------------------------------------------------------- |
+| `CancelablePromise.all(values)`        | A promise of every result, in the order of the values                  |
+| `CancelablePromise.allSettled(values)` | A promise of the outcome of every value. A canceled one has the status `'canceled'` |
+| `CancelablePromise.race(values)`       | A promise that settles with the first value to settle                  |
+| `CancelablePromise.resolve(value?)`    | A resolved promise                                                     |
+| `CancelablePromise.reject(reason?)`    | A rejected promise                                                     |
+| `CancelablePromise.canceled(reason?)`  | A canceled promise                                                     |
+
+Canceling the result of `all`, `allSettled` or `race` cancels every promise inside it. In `all` and `race`, a
+promise that is canceled cancels the result.
+
+## defer
+
+```ts
+import { defer } from 'easy-cancelable-promise';
+```
+
+`defer<T>()` returns a `DeferredPromise<T>`.
+
+| Property          | Type                         |
+| ----------------- | ---------------------------- |
+| `promise`         | `CancelablePromise<T>`       |
+| `resolve`         | `ResolveCallback<T>`         |
+| `reject`          | `RejectCallback`             |
+| The utilities     | `CancelablePromiseUtils<T>`  |
+
+See [defer and DeferredPromise](../defer/).
+
+## groupAsCancelablePromise
+
+```ts
+import { groupAsCancelablePromise } from 'easy-cancelable-promise';
+```
+
+`groupAsCancelablePromise<T>(sources, config?)` returns a `CancelablePromise<T>`, or `null` when `sources` is
+empty.
+
+`sources` is an array. Each item is a function that returns a promise, a `CancelablePromise` or a `Promise`.
+
+| Option                 | Type                           | Default | Purpose                                                  |
+| ---------------------- | ------------------------------ | ------- | -------------------------------------------------------- |
+| `maxConcurrent`        | `number`                       | `8`     | How many sources run at the same time                    |
+| `executeInOrder`       | `boolean`                      | `false` | Starts each source after the previous one finished       |
+| `beforeEachCallback`   | `() => void`                   | none    | Called before each source starts                         |
+| `afterEachCallback`    | `(result: unknown) => void`    | none    | Called after each source that succeeded                  |
+| `onQueueEmptyCallback` | `(result: unknown[] \| null) => void` | none | Called once, when every source succeeded           |
+
+The promise resolves with the results in the order of the sources, reports the percentage of sources completed,
+rejects when a source is rejected, and cancels the pending sources when it is canceled. See
+[Groups and concurrency](../groups-and-concurrency/).
+
+## toCancelablePromise
+
+```ts
+import { toCancelablePromise } from 'easy-cancelable-promise';
+```
+
+`toCancelablePromise<S, T>(source)` returns a `CancelablePromise<T>`.
+
+| `source`              | Result                                                |
+| --------------------- | ----------------------------------------------------- |
+| A `CancelablePromise` | The same instance                                     |
+| A `Promise`           | A cancelable promise that follows it                  |
+| A function            | The function is called and its result is converted    |
+| Any other value       | A cancelable promise resolved with the value          |
+
+See [Converting native promises](../converting-native-promises/).
+
+## isCancelablePromise
+
+```ts
+import { isCancelablePromise } from 'easy-cancelable-promise';
+```
+
+`isCancelablePromise<T>(value)` returns `true` when the value is a `CancelablePromise`, and narrows it to
+`CancelablePromise<T>`. It recognizes promises created by another copy of the package.
+
+## isPromise
+
+```ts
+import { isPromise } from 'easy-cancelable-promise';
+```
+
+`isPromise(value)` returns `true` when the value has a `then` method, and narrows it to `Promise<unknown>`.
+
+## CancelableAbortController
+
+```ts
+import { CancelableAbortController } from 'easy-cancelable-promise';
+```
+
+A class that extends `AbortController`.
+
+| Member                                       | Returns                  | Purpose                                              |
+| -------------------------------------------- | ------------------------ | ---------------------------------------------------- |
+| `signal`                                     | `CancelableAbortSignal`  | The signal, with `subscribe`                         |
+| `signal.subscribe(listener, options?)`       | `RemoveEventListener`    | Listens to the `abort` event                         |
+| `signal.subscribe(type, listener, options?)` | `RemoveEventListener`    | Listens to another event type                        |
+| `subscriptions`                              | `RemoveEventListener[]`  | The active subscriptions                             |
+| `abort()`                                    | `void`                   | Aborts the signal and removes every subscription     |
+| `dispose()`                                  | `void`                   | Removes every subscription without aborting          |
+
+`subscribe` throws after `abort` or `dispose`. See [Abort signals](../abort-signals/).
+
+## isCancelableAbortSignal
+
+```ts
+import { isCancelableAbortSignal } from 'easy-cancelable-promise';
+```
+
+`isCancelableAbortSignal(signal)` returns `true` for the signal of a `CancelableAbortController`, and narrows
+it to `CancelableAbortSignal`.
+
+## Types
+
+```ts
+import type {
+  PromiseStatus,
+  CancelablePromiseCallback,
+  CancelablePromiseUtils,
+  ResolveCallback,
+  RejectCallback,
+  CancelCallback,
+  OnProgressCallback,
+  Subscription,
+  SubscriptionParams,
+  DeferredPromise,
+  CancelablePromiseGroupConfig,
+  CancelablePromiseBuildCallback,
+  CancelableAbortSignal,
+  RemoveEventListener,
+} from 'easy-cancelable-promise';
+```
+
+| Type                                | Definition                                                              |
+| ----------------------------------- | ----------------------------------------------------------------------- |
+| `PromiseStatus`                     | `'canceled' \| 'pending' \| 'resolved' \| 'rejected'`                    |
+| `CancelablePromiseCallback<T>`      | `(resolve, reject, utils) => void`                                      |
+| `CancelablePromiseUtils<T>`         | The utilities of the callback                                           |
+| `ResolveCallback<T>`                | `(value?: T \| PromiseLike<T>) => void`                                 |
+| `RejectCallback`                    | `(reason?: unknown) => void`                                            |
+| `CancelCallback`                    | `(reason?: unknown) => void`                                            |
+| `OnProgressCallback`                | `(progress: number, metadata?: unknown) => void`                        |
+| `Subscription`                      | `() => void`                                                            |
+| `SubscriptionParams`                | `{ signal?: CancelableAbortSignal \| AbortSignal }`                     |
+| `DeferredPromise<T>`                | `{ promise, resolve, reject }` and the utilities                        |
+| `CancelablePromiseGroupConfig`      | The options of `groupAsCancelablePromise`                               |
+| `CancelablePromiseBuildCallback<T>` | `() => Promise<T> \| CancelablePromise<T>`                              |
+| `CancelableAbortSignal`             | `AbortSignal` with `subscribe`                                          |
+| `RemoveEventListener`               | `() => void`                                                            |
+
+<Callout type="note" title="Checked against the package">
+  The imports on this page are compiled against the built package together with every other code sample of the
+  site, and a strict type test in the library covers each signature.
+</Callout>

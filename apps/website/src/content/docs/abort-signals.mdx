@@ -1,0 +1,55 @@
+---
+title: Abort signals
+description: Remove cancel and progress listeners with an AbortSignal, and manage many subscriptions with CancelableAbortController.
+section: Guides
+order: 3
+---
+
+import { CodeBlock } from '../../ui/CodeBlock';
+import { Callout } from '../../ui/Callout';
+import controller from '@snippets/signals/controller.ts?raw';
+import withPromise from '@snippets/signals/with-promise.ts?raw';
+import dispose from '@snippets/signals/dispose.ts?raw';
+
+## Signals remove listeners
+
+`onCancel` and `onProgress` accept an options object with a `signal`. When the signal is aborted, the listener
+is removed. The promise itself is not affected.
+
+<CodeBlock code={withPromise} lang="ts" title="mounted.ts" />
+
+This is the pattern for a screen or a component: one controller for everything it subscribes to, aborted when
+it goes away. The task keeps running for whoever else needs it.
+
+<Callout type="note" title="A signal does not cancel the promise">
+  Aborting the signal only removes listeners. To cancel the promise call `cancel`. To cancel it when a signal is
+  aborted, connect them: `signal.addEventListener('abort', () => promise.cancel())`.
+</Callout>
+
+## CancelableAbortController
+
+`CancelableAbortController` extends the native `AbortController`. Its signal has a `subscribe` method that
+returns the function to remove the listener, and the controller keeps track of every subscription.
+
+<CodeBlock code={controller} lang="ts" title="controller.ts" />
+
+| Member                                     | What it does                                                         |
+| ------------------------------------------ | -------------------------------------------------------------------- |
+| `signal.subscribe(listener, options?)`     | Listens to the `abort` event. Returns the function to remove it      |
+| `signal.subscribe(type, listener, options?)` | Listens to another event type of the signal                        |
+| `subscriptions`                            | The functions that remove the active subscriptions                   |
+| `abort()`                                  | Aborts the signal, then removes every subscription                   |
+| `dispose()`                                | Removes every subscription without aborting the signal               |
+
+`isCancelableAbortSignal(signal)` tells a signal of this controller from a native one.
+
+## dispose
+
+After `abort` or `dispose` the controller accepts no more subscriptions.
+
+<CodeBlock code={dispose} lang="ts" title="dispose.ts" />
+
+## Next
+
+- [cancel and onCancel](../cancel-and-oncancel/#remove-a-listener)
+- [API reference](../api-reference/#cancelableabortcontroller)

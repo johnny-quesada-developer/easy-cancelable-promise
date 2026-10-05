@@ -1,0 +1,51 @@
+---
+title: Stop the work
+headline: Stop waiting, and stop the work too
+description: The same task runs in a native Promise and in a CancelablePromise. Press Stop and count the steps each one still runs.
+order: 1
+category: Cancellation
+thumb: cancel
+outcome: A native promise can only be ignored. A CancelablePromise is told to stop, and it stops its own work.
+points:
+  - Press Start both, then Stop both while the bars move. Both sides stop reporting to you at that moment.
+  - Look at Steps after Stop. The native promise keeps running every remaining step. The CancelablePromise runs none.
+  - Let it run to the end without pressing Stop. Both resolve with the same number of primes, so the work is the same.
+sources:
+  - file: shared/search.ts
+    title: search.ts
+  - file: shared/work.ts
+    title: work.ts
+  - file: cancel/CancelDemo.tsx
+    title: CancelDemo.tsx
+guide: cancel-and-oncancel
+related:
+  - label: cancel and onCancel
+    href: ../../docs/cancel-and-oncancel/
+  - label: CancelablePromise
+    href: ../../docs/cancelable-promise/
+  - label: Converting native promises
+    href: ../../docs/converting-native-promises/
+---
+
+import { CodeBlock } from '../../ui/CodeBlock';
+import { Callout } from '../../ui/Callout';
+import search from '@examples/shared/search.ts?raw';
+
+## The code
+
+Both functions do the same work: they count prime numbers in steps, with a pause between steps so the page
+stays free. The only difference is the promise they return.
+
+<CodeBlock code={search} lang="ts" title="search.ts" />
+
+The native version has nothing to call. The example can stop listening to it, but the timer that schedules the
+next step is out of reach, so every step still runs.
+
+The cancelable version registers one line with `onCancel`. Canceling the promise clears the timer, and the next
+step never happens.
+
+<Callout type="note" title="What is measured">
+  Steps after Stop counts the steps each promise ran after you pressed the button. Work after Stop is the
+  time between the button and the last step of that promise. Both are measured in your browser, on the real
+  library.
+</Callout>

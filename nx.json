@@ -1,47 +1,84 @@
 {
   "namedInputs": {
-    "default": ["{projectRoot}/**/*", "sharedGlobals"],
+    "default": [
+      "{projectRoot}/**/*",
+      "sharedGlobals"
+    ],
     "production": [
       "default",
       "!{projectRoot}/__test__/**/*",
+      "!{projectRoot}/visual/**/*",
+      "!{projectRoot}/playwright.config.ts",
       "!{projectRoot}/vitest.config.ts",
       "!{projectRoot}/vitest.setup.ts"
     ],
-    "sharedGlobals": ["{workspaceRoot}/tsconfig.base.json", "{workspaceRoot}/.prettierrc"]
+    "sharedGlobals": [
+      "{workspaceRoot}/tsconfig.base.json",
+      "{workspaceRoot}/.prettierrc"
+    ]
   },
   "targetDefaults": {
     "build": {
       "cache": true,
-      "inputs": ["production", "^production", "{workspaceRoot}/scripts/prepare-dist.ts"],
-      "outputs": ["{projectRoot}/dist"]
+      "inputs": [
+        "production",
+        "^production",
+        "{workspaceRoot}/scripts/prepare-dist.ts"
+      ],
+      "outputs": [
+        "{projectRoot}/dist"
+      ]
     },
     "test": {
       "//": "Runs against the TypeScript source; the built package is covered by test:dist and test:interop.",
       "cache": true,
-      "inputs": ["default", "^default"]
+      "inputs": [
+        "default",
+        "^default"
+      ]
     },
     "test:quick": {
       "cache": true,
-      "inputs": ["default", "^default"]
+      "inputs": [
+        "default",
+        "^default"
+      ]
     },
     "test:dist": {
       "//": "Rebuilds ./dist and runs the same suite against it.",
       "cache": true,
-      "inputs": ["default", "^default", "{workspaceRoot}/scripts/prepare-dist.ts"],
-      "outputs": ["{projectRoot}/dist"]
+      "inputs": [
+        "default",
+        "^default",
+        "{workspaceRoot}/scripts/prepare-dist.ts"
+      ],
+      "outputs": [
+        "{projectRoot}/dist"
+      ]
     },
     "test:coverage": {
       "cache": true,
-      "inputs": ["default", "^default"],
-      "outputs": ["{projectRoot}/coverage"]
+      "inputs": [
+        "default",
+        "^default"
+      ],
+      "outputs": [
+        "{projectRoot}/coverage"
+      ]
     },
     "ts-check": {
       "cache": true,
-      "inputs": ["production", "^production"]
+      "inputs": [
+        "production",
+        "^production"
+      ]
     },
     "ts-check:tests": {
       "cache": true,
-      "inputs": ["default", "^production"]
+      "inputs": [
+        "default",
+        "^production"
+      ]
     }
   },
   "neverConnectToCloud": true,

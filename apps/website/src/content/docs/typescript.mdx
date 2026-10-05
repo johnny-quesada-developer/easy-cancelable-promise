@@ -1,0 +1,73 @@
+---
+title: TypeScript
+description: The type arguments of each function, the exported types, how to narrow rejection reasons, and the entries of the package.
+section: Guides
+order: 4
+---
+
+import { CodeBlock } from '../../ui/CodeBlock';
+import { Callout } from '../../ui/Callout';
+import generics from '@snippets/typescript/generics.ts?raw';
+import types from '@snippets/typescript/types.ts?raw';
+import reasons from '@snippets/typescript/reasons.ts?raw';
+import subpaths from '@snippets/typescript/subpaths.ts?raw';
+
+## Types are included
+
+The package ships its declarations. There is nothing to install from `@types`.
+
+## Type arguments
+
+<CodeBlock code={generics} lang="ts" title="generics.ts" />
+
+| Function                                | Type arguments                                             |
+| --------------------------------------- | ---------------------------------------------------------- |
+| `new CancelablePromise<T>(callback)`    | `T`: the result. Default `void`                            |
+| `defer<T>()`                            | `T`: the result                                            |
+| `groupAsCancelablePromise<T>(tasks)`    | `T`: the array of results, for example `User[]`            |
+| `toCancelablePromise<S, T>(source)`     | `S`: what you pass. `T`: the result. Give both             |
+| `isCancelablePromise<T>(value)`         | `T`: the result of the promise the value is narrowed to    |
+
+## Reasons are unknown
+
+The reason of a rejection or a cancellation can be any value, so `catch`, `onCancel` and the rejection handler
+of `then` receive `unknown`. Narrow it before use.
+
+<CodeBlock code={reasons} lang="ts" title="reasons.ts" />
+
+## Exported types
+
+<CodeBlock code={types} lang="ts" title="types.ts" />
+
+| Type                              | Describes                                                           |
+| --------------------------------- | ------------------------------------------------------------------- |
+| `PromiseStatus`                   | `'pending'`, `'resolved'`, `'rejected'` or `'canceled'`              |
+| `CancelablePromiseCallback<T>`    | The callback of the constructor                                     |
+| `CancelablePromiseUtils<T>`       | The third parameter of that callback                                |
+| `ResolveCallback<T>`              | `resolve`                                                           |
+| `RejectCallback`                  | `reject`                                                            |
+| `CancelCallback`                  | A cancel listener                                                   |
+| `OnProgressCallback`              | A progress listener                                                 |
+| `Subscription`                    | The function that removes a listener                                |
+| `SubscriptionParams`              | The options of `onCancel` and `onProgress`: `{ signal }`            |
+| `DeferredPromise<T>`              | What `defer` returns                                                |
+| `CancelablePromiseGroupConfig`    | The configuration of `groupAsCancelablePromise`                     |
+| `CancelablePromiseBuildCallback<T>` | A task of a group: a function that returns a promise              |
+| `CancelableAbortSignal`           | The signal of a `CancelableAbortController`                         |
+| `RemoveEventListener`             | The function `signal.subscribe` returns                             |
+
+## Entries of the package
+
+Everything is exported from `easy-cancelable-promise`. Each module is also its own entry, with the same types.
+
+<CodeBlock code={subpaths} lang="ts" title="subpaths.ts" />
+
+<Callout type="note" title="AbortController types">
+  The declarations use `AbortController` and `AbortSignal`. They come from the `dom` library of TypeScript, or
+  from `@types/node`. A project that has neither needs one of them.
+</Callout>
+
+## Next
+
+- [API reference](../api-reference/)
+- [Testing](../testing/)

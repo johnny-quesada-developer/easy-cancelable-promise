@@ -16,7 +16,7 @@ _Promises that respect boundaries. Cancel what you don't need._ ✨
 [![Downloads](https://img.shields.io/npm/dm/easy-cancelable-promise.svg)](https://www.npmjs.com/package/easy-cancelable-promise)
 [![License](https://img.shields.io/npm/l/easy-cancelable-promise.svg)](https://github.com/johnny-quesada-developer/easy-cancelable-promise/blob/main/LICENSE)
 
-[**GitHub**](https://github.com/johnny-quesada-developer/easy-cancelable-promise) • [**NPM**](https://www.npmjs.com/package/easy-cancelable-promise)
+[**Documentation**](https://johnny-quesada-developer.github.io/easy-cancelable-promise/) • [**Live examples**](https://johnny-quesada-developer.github.io/easy-cancelable-promise/examples/) • [**GitHub**](https://github.com/johnny-quesada-developer/easy-cancelable-promise) • [**NPM**](https://www.npmjs.com/package/easy-cancelable-promise)
 
 </div>
 
@@ -190,6 +190,8 @@ npm install easy-cancelable-promise
 ```
 
 **Zero dependencies. TypeScript ready. Works everywhere.**
+
+📚 **Full documentation, API reference and live examples:** [johnny-quesada-developer.github.io/easy-cancelable-promise](https://johnny-quesada-developer.github.io/easy-cancelable-promise/)
 
 ---
 
@@ -806,6 +808,6 @@ MIT License - see [LICENSE](LICENSE) for details.
 
 ### Built with ❤️ for developers who value control
 
-**[⭐ Star on GitHub](https://github.com/johnny-quesada-developer/easy-cancelable-promise)** • **[📝 Report Issues](https://github.com/johnny-quesada-developer/easy-cancelable-promise/issues)** • **[📦 NPM Package](https://www.npmjs.com/package/easy-cancelable-promise)**
+**[📚 Documentation](https://johnny-quesada-developer.github.io/easy-cancelable-promise/)** • **[⭐ Star on GitHub](https://github.com/johnny-quesada-developer/easy-cancelable-promise)** • **[📝 Report Issues](https://github.com/johnny-quesada-developer/easy-cancelable-promise/issues)** • **[📦 NPM Package](https://www.npmjs.com/package/easy-cancelable-promise)**
 
 </div>

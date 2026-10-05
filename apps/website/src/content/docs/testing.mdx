@@ -1,0 +1,46 @@
+---
+title: Testing
+description: Test cancelable code with fake timers, hand the code under test a promise you control, and assert on the status instead of on timing.
+section: Quality
+order: 1
+---
+
+import { CodeBlock } from '../../ui/CodeBlock';
+import { Callout } from '../../ui/Callout';
+import delay from '@snippets/testing/delay.ts?raw';
+import delayTest from '@snippets/testing/delay.test.ts?raw';
+import deferredTest from '@snippets/testing/deferred.test.ts?raw';
+
+## Nothing to mock
+
+A `CancelablePromise` is a real promise with no dependencies. It runs the same in Node, jsdom and the browser,
+so tests use the real class.
+
+## Test that canceling stops the work
+
+The claim of a cancelable function is that its work stops. Assert on that, not only on the rejection.
+
+<CodeBlock code={delay} lang="ts" title="delay.ts" />
+
+<CodeBlock code={delayTest} lang="ts" title="delay.test.ts" />
+
+- `status` changes as soon as `cancel` is called, so it can be asserted without awaiting anything.
+- With fake timers, `getTimerCount` shows that the timer was cleared.
+- The rejection carries the reason that was passed to `cancel`.
+
+## Hand the code a promise you control
+
+Code that receives a promise is tested by giving it one. `defer` creates a promise the test resolves, rejects,
+cancels or reports progress on, at the moment it chooses.
+
+<CodeBlock code={deferredTest} lang="ts" title="describeRequest.test.ts" />
+
+<Callout type="note" title="How this library is tested">
+  The package runs its unit suite twice, against the source and against the built files, plus a strict
+  type-check of the published declarations and an install test under Node ESM, Node CommonJS, tsx and a browser
+  bundle. The code samples on this site are part of that: a test executes them against the built package.
+</Callout>
+
+## Next
+
+- [Troubleshooting](../troubleshooting/)

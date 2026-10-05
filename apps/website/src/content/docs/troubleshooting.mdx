@@ -1,0 +1,80 @@
+---
+title: Troubleshooting
+description: Symptoms you may run into with cancelable promises, what causes each one, and how to fix it.
+section: Quality
+order: 2
+symptoms: true
+---
+
+import { CodeBlock } from '../../ui/CodeBlock';
+import asyncCallback from '@snippets/troubleshooting/async-callback.ts?raw';
+
+## Canceling does not stop the work
+
+`cancel` tells everyone to stop waiting. The work stops only if the promise has an `onCancel` listener that
+stops it: clears the timer, aborts the request, closes the socket.
+
+- Add the cleanup inside the callback. See [cancel and onCancel](../cancel-and-oncancel/#clean-up-inside-the-promise).
+- A native promise wrapped with `toCancelablePromise` cannot be stopped. See
+  [Converting native promises](../converting-native-promises/#what-a-wrapper-can-stop).
+
+## cancel does nothing
+
+The promise was already resolved, rejected or canceled. A settled promise cannot be canceled: `cancel` returns
+the promise and calls no listener. Read `promise.status` to see how it ended.
+
+## An unhandled rejection after canceling
+
+Canceling a promise never causes an unhandled rejection by itself. A promise you created from it with `then` or
+`finally` is a different promise, and it rejects with the same reason. Add a `catch` to the chain you created.
+
+## A promise chained from a canceled promise is 'rejected'
+
+`status` is `'canceled'` on the promise that was canceled and on the promises it was created from. A promise
+chained from a canceled one rejects with the reason, and its status is `'rejected'`. Read the status of the
+promise you canceled.
+
+## instanceof CancelablePromise is false
+
+Two copies of the class are loaded. This happens when one part of a Node application loads the package with
+`import` and another with `require`: Node treats the ES module and the CommonJS files as different modules.
+
+Use `isCancelablePromise(value)` instead. It recognizes the promises of every copy.
+
+Versions before 3 also had one copy per entry: a promise created through `easy-cancelable-promise/defer` was not
+an instance of the class exported by `easy-cancelable-promise/CancelablePromise`. That is fixed in version 3.
+
+## An error inside an async callback is not caught
+
+The callback may be `async`, but an error thrown after its first `await` rejects the promise that the `async`
+function returns, not the `CancelablePromise`. Catch it and call `reject`.
+
+<CodeBlock code={asyncCallback} lang="ts" title="load.ts" />
+
+## A progress listener is never called
+
+Progress reports are not stored. A listener receives the reports sent after it was registered.
+
+- Register `onProgress` right after creating the promise.
+- Do not call `reportProgress` in the synchronous part of the callback: nobody can be listening yet.
+- After the promise settles its listeners are removed.
+
+## groupAsCancelablePromise returns null
+
+The list of tasks is empty. Check the list before calling it, or handle `null`.
+
+## The status 'canceled' is a type error with allSettled
+
+`CancelablePromise.allSettled` reports a canceled promise with the status `'canceled'`, but its return type is
+the native `PromiseSettledResult`, which only declares `'fulfilled'` and `'rejected'`. Compare the status as a
+string: `(result.status as string) === 'canceled'`.
+
+## The value received by then is typed as a promise
+
+This happens with `toCancelablePromise` when the type arguments are inferred. Pass both:
+`toCancelablePromise<Promise<User>, User>(promise)`.
+
+## Cannot find name 'AbortController'
+
+The declarations of the package use `AbortController` and `AbortSignal`. Add `"dom"` to the `lib` option of your
+`tsconfig.json`, or install `@types/node`.

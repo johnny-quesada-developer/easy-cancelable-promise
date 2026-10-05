@@ -1,0 +1,66 @@
+---
+title: Converting native promises
+short: Converting promises
+description: Turn a Promise, a value or a function into a CancelablePromise with toCancelablePromise, know what a wrapper can and cannot stop, and check what you have with the type guards.
+section: Guides
+order: 1
+---
+
+import { CodeBlock } from '../../ui/CodeBlock';
+import { Callout } from '../../ui/Callout';
+import convert from '@snippets/convert/to-cancelable.ts?raw';
+import limits from '@snippets/convert/limits.ts?raw';
+import wrapFetch from '@snippets/convert/wrap-fetch.ts?raw';
+import guards from '@snippets/convert/guards.ts?raw';
+
+## toCancelablePromise
+
+`toCancelablePromise` accepts anything and returns a `CancelablePromise`.
+
+| You pass              | You get                                                   |
+| --------------------- | --------------------------------------------------------- |
+| A `CancelablePromise` | The same instance                                         |
+| A native `Promise`    | A cancelable promise that follows it                      |
+| A function            | The function is called, and its result is converted       |
+| Any other value       | A cancelable promise already resolved with that value     |
+
+<CodeBlock code={convert} lang="ts" title="convert.ts" />
+
+<Callout type="note" title="Pass both type arguments">
+  The first type argument is the type of what you pass, the second is the type of the result. Give both, as in
+  `toCancelablePromise<Promise<User>, User>(promise)`. With the inferred default, `await` gives the right type
+  but the value received by `then` is typed as a promise.
+</Callout>
+
+## What a wrapper can stop
+
+A native promise has no way to be stopped. Wrapping it gives you `cancel`, `status` and `onCancel`, and whoever
+awaits the wrapper stops waiting. The work behind the native promise still runs to the end.
+
+<CodeBlock code={limits} lang="ts" title="limits.ts" />
+
+## Stop the work itself
+
+To stop the work, create the `CancelablePromise` where the work starts, and connect `onCancel` to whatever can
+stop it. For `fetch` that is an `AbortController`.
+
+<CodeBlock code={wrapFetch} lang="ts" title="cancelableFetch.ts" />
+
+The same shape works for timers (`clearTimeout`), sockets (`close`), streams (`cancel`) and other libraries
+that accept an `AbortSignal`.
+
+## Type guards
+
+`isPromise` and `isCancelablePromise` tell you what a value is at runtime, and narrow its type.
+
+<CodeBlock code={guards} lang="ts" title="guards.ts" />
+
+- `isPromise` is `true` for anything with a `then` method.
+- `isCancelablePromise` is `true` only for instances of `CancelablePromise`. It also recognizes promises created
+  by another copy of the package, which `instanceof` does not. See
+  [Troubleshooting](../troubleshooting/#instanceof-cancelablepromise-is-false).
+
+## Next
+
+- [Groups and concurrency](../groups-and-concurrency/)
+- [TypeScript](../typescript/)

@@ -1,0 +1,102 @@
+---
+title: CancelablePromise
+description: The class behind everything else. How it is created, what its callback receives, how its status changes and what happens in a chain.
+section: Core concepts
+order: 1
+---
+
+import { CodeBlock } from '../../ui/CodeBlock';
+import { Callout } from '../../ui/Callout';
+import { FlowDiagram } from '../../ui/docs/InlineDiagram';
+import constructor from '@snippets/cancelable-promise/constructor.ts?raw';
+import status from '@snippets/cancelable-promise/status.ts?raw';
+import chaining from '@snippets/cancelable-promise/chaining.ts?raw';
+import settleOnce from '@snippets/cancelable-promise/settle-once.ts?raw';
+import executorThrows from '@snippets/cancelable-promise/executor-throws.ts?raw';
+
+## A Promise with three additions
+
+`CancelablePromise` extends the native `Promise`. It adds:
+
+- a `status` you can read at any time,
+- `cancel` and `onCancel`, to stop it and to clean up after it,
+- `reportProgress` and `onProgress`, to say how far the work is.
+
+Nothing else changes. It can be awaited, chained and passed to any code that expects a promise.
+
+## The callback
+
+The constructor takes the same callback as `Promise`, with a third parameter: the utilities of the promise.
+
+<CodeBlock code={constructor} lang="ts" title="utilities.ts" />
+
+| Utility          | What it does                                                                |
+| ---------------- | --------------------------------------------------------------------------- |
+| `onCancel`       | Registers a listener for the cancellation. Returns a function to remove it  |
+| `cancel`         | Cancels the promise from inside                                             |
+| `reportProgress` | Sends a percentage, and optional metadata, to the progress listeners        |
+| `onProgress`     | Registers a progress listener from inside. Returns a function to remove it  |
+| `status`         | Returns the current status                                                  |
+| `isPending`      | `true` while the promise is not settled                                     |
+| `isCanceled`     | `true` after the promise was canceled                                       |
+
+## Status
+
+Every promise has one of four statuses, in the `status` property.
+
+<FlowDiagram
+  nodes={[
+    { label: 'pending', tone: 'blue' },
+    { label: 'resolved · rejected · canceled', tone: 'accent' },
+  ]}
+  caption="A promise leaves pending once, and never changes again."
+/>
+
+| Status     | Meaning                                       |
+| ---------- | --------------------------------------------- |
+| `pending`  | The work is in progress                       |
+| `resolved` | `resolve` was called with a value             |
+| `rejected` | `reject` was called, or the callback threw    |
+| `canceled` | `cancel` was called while it was pending      |
+
+<CodeBlock code={status} lang="ts" title="status.ts" />
+
+A canceled promise is a rejected promise for `await`, `catch` and `then`. The status is what tells a
+cancellation from a failure.
+
+## A promise settles once
+
+Like a native promise, only the first call counts. After a promise is resolved, rejected or canceled, later calls
+to `resolve`, `reject` and `cancel` are ignored and the status does not change.
+
+<CodeBlock code={settleOnce} lang="ts" title="settle-once.ts" />
+
+Resolving with another promise does not settle it yet. The promise stays `pending`, and can still be canceled,
+until the promise you passed settles.
+
+## When the callback throws
+
+An error thrown by the callback rejects the promise, same as a native `Promise`.
+
+<CodeBlock code={executorThrows} lang="ts" title="executor-throws.ts" />
+
+<Callout type="warning" title="An async callback is different">
+  The callback may be an `async` function, but an error thrown after its first `await` is not caught by the
+  promise. Wrap that code in `try` / `catch` and call `reject` yourself.
+</Callout>
+
+## Chains
+
+`then`, `catch` and `finally` return a `CancelablePromise`. Canceling a promise of a chain cancels the promises
+it was created from, so the cleanup of the first promise runs no matter which link is canceled.
+
+<CodeBlock code={chaining} lang="ts" title="chaining.ts" />
+
+The cancellation travels up the chain, towards the source of the work. A promise chained from a canceled
+promise rejects with the same reason.
+
+## Next
+
+- [cancel and onCancel](../cancel-and-oncancel/)
+- [Progress reporting](../progress-reporting/)
+- [API reference](../api-reference/#cancelablepromise)

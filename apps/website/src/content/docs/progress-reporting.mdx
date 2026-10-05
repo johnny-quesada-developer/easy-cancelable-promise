@@ -1,0 +1,65 @@
+---
+title: Progress reporting
+description: Report how far the work is from inside a promise, listen from outside, follow it through a chain and stop listening.
+section: Core concepts
+order: 3
+---
+
+import { CodeBlock } from '../../ui/CodeBlock';
+import { Callout } from '../../ui/Callout';
+import report from '@snippets/progress/report.ts?raw';
+import listen from '@snippets/progress/listen.ts?raw';
+import chain from '@snippets/progress/chain.ts?raw';
+import unsubscribe from '@snippets/progress/unsubscribe.ts?raw';
+import outside from '@snippets/progress/report-outside.ts?raw';
+
+## Report from inside
+
+A native promise has one moment to say something: the end. A `CancelablePromise` can report while it works,
+through `reportProgress`.
+
+<CodeBlock code={report} lang="ts" title="processItems.ts" />
+
+`reportProgress` takes a number and, optionally, any metadata. The number is yours to define. A percentage from
+`0` to `100` is the convention used by this library and by `groupAsCancelablePromise`.
+
+## Listen from outside
+
+`onProgress` registers a listener and returns the promise, so it can be chained and awaited in one expression.
+
+<CodeBlock code={listen} lang="ts" title="listen.ts" />
+
+The metadata is typed `unknown`. Narrow it before use.
+
+<Callout type="note" title="Reports are not stored">
+  A listener receives the reports sent after it was registered. A report sent before, for example in the first
+  synchronous lines of the callback, is not replayed.
+</Callout>
+
+## Through a chain
+
+The progress of a promise reaches the promises created from it with `then`, `catch` and `finally`. You can
+listen on the last promise of a chain.
+
+<CodeBlock code={chain} lang="ts" title="chain.ts" />
+
+## Stop listening
+
+Pass a signal to `onProgress` and abort it. Inside the callback, the `onProgress` utility returns the function
+that removes the listener.
+
+<CodeBlock code={unsubscribe} lang="ts" title="unsubscribe.ts" />
+
+## Report from outside
+
+`reportProgress` is also a method of the promise, and of the object `defer` returns. Use it when the code that
+knows the progress is not the callback.
+
+<CodeBlock code={outside} lang="ts" title="report-outside.ts" />
+
+After a promise settles its listeners are removed, so later reports reach nobody.
+
+## Next
+
+- [defer](../defer/)
+- [Progress through the promise](../../examples/progress-through-the-promise/): the live example of this page.

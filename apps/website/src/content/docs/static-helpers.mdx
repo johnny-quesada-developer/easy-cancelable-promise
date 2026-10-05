@@ -1,0 +1,70 @@
+---
+title: Static helpers
+description: CancelablePromise.all, allSettled, race, resolve, reject and canceled. The static methods of Promise, returning promises that can be canceled.
+section: Core concepts
+order: 5
+---
+
+import { CodeBlock } from '../../ui/CodeBlock';
+import { Callout } from '../../ui/Callout';
+import all from '@snippets/statics/all.ts?raw';
+import allSettled from '@snippets/statics/all-settled.ts?raw';
+import race from '@snippets/statics/race.ts?raw';
+import shortcuts from '@snippets/statics/shortcuts.ts?raw';
+
+## The same methods, cancelable
+
+`CancelablePromise` has the static methods you know from `Promise`. Each returns a `CancelablePromise`, and
+canceling it cancels the promises inside it.
+
+| Method                              | Resolves with                                   | Canceling it                |
+| ----------------------------------- | ----------------------------------------------- | --------------------------- |
+| `CancelablePromise.all(values)`     | Every result, in the order of the values        | Cancels every promise       |
+| `CancelablePromise.allSettled(values)` | The outcome of every promise                 | Cancels every promise       |
+| `CancelablePromise.race(values)`    | The first promise to settle                     | Cancels every promise       |
+| `CancelablePromise.resolve(value)`  | The value                                       | Nothing, already settled    |
+| `CancelablePromise.reject(reason)`  | Never, it is rejected                           | Nothing, already settled    |
+| `CancelablePromise.canceled(reason)` | Never, it is canceled                          | Nothing, already settled    |
+
+The values can be cancelable promises, native promises, plain values, or any mix of them.
+
+## all
+
+<CodeBlock code={all} lang="ts" title="all.ts" />
+
+- The results keep the position of their values. The same promise can appear more than once.
+- An empty array resolves with `[]`.
+- If one promise is rejected, the result is rejected with that reason.
+- If one promise is canceled, the result is canceled, and that cancels the rest.
+
+## allSettled
+
+`allSettled` never rejects. It waits for every promise and reports how each one ended.
+
+<CodeBlock code={allSettled} lang="ts" title="all-settled.ts" />
+
+<Callout type="warning" title="The status 'canceled' is not in the type">
+  A canceled promise is reported as `{ status: 'canceled', reason }`. The return type uses the native
+  `PromiseSettledResult`, which only declares `'fulfilled'` and `'rejected'`, so TypeScript needs the comparison
+  to be made as a string.
+</Callout>
+
+## race
+
+`race` settles with the first promise that settles. The other promises keep running. Cancel them if you no
+longer need them.
+
+<CodeBlock code={race} lang="ts" title="race.ts" />
+
+An empty array never settles, same as `Promise.race([])`.
+
+## resolve, reject and canceled
+
+Shortcuts for a promise that is already settled.
+
+<CodeBlock code={shortcuts} lang="ts" title="shortcuts.ts" />
+
+## Next
+
+- [Groups and concurrency](../groups-and-concurrency/): when you need to limit how many promises run at once.
+- [API reference](../api-reference/#static-methods)

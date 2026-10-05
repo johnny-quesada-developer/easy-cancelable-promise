@@ -1,0 +1,47 @@
+---
+title: Progress through the promise
+headline: Know how far the work is, without a second channel
+description: The same task in a native Promise and in a CancelablePromise. One is silent until the end, the other reports every step through the promise itself.
+order: 2
+category: Progress
+thumb: progress
+outcome: Progress belongs to the promise. Whoever holds it can listen, even through a chain.
+points:
+  - Press Start both. The native promise shows a bar that cannot move, because it has nothing to report with.
+  - Watch Progress updates and First feedback after. The CancelablePromise answers within one step, the native promise only when it ends.
+  - Look at Updates received through .then(). A promise chained from the first one receives the same reports.
+sources:
+  - file: shared/search.ts
+    title: search.ts
+  - file: progress/ProgressDemo.tsx
+    title: ProgressDemo.tsx
+  - file: shared/work.ts
+    title: work.ts
+guide: progress-reporting
+related:
+  - label: Progress reporting
+    href: ../../docs/progress-reporting/
+  - label: CancelablePromise
+    href: ../../docs/cancelable-promise/
+---
+
+import { CodeBlock } from '../../ui/CodeBlock';
+import { Callout } from '../../ui/Callout';
+import search from '@examples/shared/search.ts?raw';
+import demo from '@examples/progress/ProgressDemo.tsx?raw';
+
+## The code
+
+The cancelable search calls `reportProgress` after each step, with the percentage and the primes found so far.
+
+<CodeBlock code={search} lang="ts" title="search.ts" />
+
+The example listens with `onProgress`. It also chains a second promise with `then` and listens on that one: the
+reports reach both.
+
+<CodeBlock code={demo} lang="tsx" title="ProgressDemo.tsx" />
+
+<Callout type="note" title="Without the library">
+  A native promise can report progress only through something else you pass in: a callback, an event emitter, a
+  stream. That second channel has to be carried along with the promise everywhere the promise goes.
+</Callout>

@@ -1,0 +1,68 @@
+---
+title: Platform and versions
+short: Platform & versions
+description: Where easy-cancelable-promise runs, what the package ships, and what changes when you upgrade from version 2.
+section: Platform
+order: 1
+---
+
+import { PACKAGE_VERSION, links } from '../../lib/site';
+import { Callout } from '../../ui/Callout';
+
+## Where it runs
+
+The library is plain JavaScript on top of the native `Promise`. It has no dependencies and does not depend on
+any framework.
+
+| Environment        | Needs                                                              |
+| ------------------ | ------------------------------------------------------------------ |
+| Browsers           | ES2020: Chrome 80, Edge 80, Firefox 74, Safari 13.1                |
+| Node.js            | 15 or later, for the global `AbortController`                      |
+| Server rendering   | Yes                                                                |
+
+`CancelableAbortController` extends the global `AbortController`. Everything else only needs `Promise`.
+
+## What the package ships
+
+- ES modules (`.mjs`), CommonJS (`.cjs`) and TypeScript declarations for every entry.
+- One entry per module, besides the main one. See [TypeScript](../typescript/#entries-of-the-package).
+- `"sideEffects": false`, so bundlers drop what you do not import.
+- No dependencies.
+
+Bundlers and Node with `import` load the ES modules. `require` loads the CommonJS files.
+
+## Upgrading from version 2
+
+<Callout type="note" title="Version documented here">
+  These pages describe <strong>{PACKAGE_VERSION}</strong>.
+</Callout>
+
+The public API is the same. What changed is how the package is built, and a number of cases that did not behave
+as documented.
+
+| Change                                                    | What to do                                                              |
+| --------------------------------------------------------- | ----------------------------------------------------------------------- |
+| Published files are ES modules and CommonJS               | Nothing with a bundler. The UMD global for `<script>` tags is gone      |
+| In Node, `import X from 'easy-cancelable-promise'` is the class | Before it was the object with all the exports. Use named imports   |
+| Every entry shares one class                              | `instanceof` now works between entries. Nothing to do                   |
+| `resolve(promise)` keeps the status `pending`             | The status follows the promise you passed, and it can still be canceled |
+| A callback that throws rejects the promise                | Before, the constructor threw. Move the `try` / `catch` to the promise  |
+| `groupAsCancelablePromise` keeps the order of the tasks   | Results were in completion order. Stop sorting them                     |
+| `executeInOrder` runs one task at a time                  | Before, the tasks of a batch started together                           |
+
+## Fixed in version 3
+
+- A group with a task that is rejected now rejects. Before, it never settled.
+- Canceling a group no longer leaves unhandled rejections.
+- `beforeEachCallback` runs before its task starts.
+- `maxConcurrent` below `1` behaves as `1`. Before, the group never finished.
+- `CancelablePromise.all([])` and `allSettled([])` resolve with an empty array.
+- `all` and `allSettled` keep one result per value when the same promise is passed twice.
+- `resolve` and `reject` after the promise settled are ignored, and the status no longer changes.
+- A cancel listener that throws no longer leaves the promise pending.
+- `isCancelablePromise` recognizes promises created by another copy of the package.
+
+## Related
+
+- <a href={links.easyWebWorker}>easy-web-worker</a>: Web Workers whose calls return a `CancelablePromise`.
+- <a href={links.npm}>The package on npm</a> and <a href={links.repo}>the source on GitHub</a>.
