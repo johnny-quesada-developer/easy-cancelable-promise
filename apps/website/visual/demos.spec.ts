@@ -201,3 +201,26 @@ test.describe('search', () => {
     expect(errors).toEqual([]);
   });
 });
+
+test.describe('DevTools', () => {
+  test('the stores of the site are announced to the react-global-state-hooks extension', async ({ page }) => {
+    const errors = collectErrors(page);
+    const announced: string[] = [];
+
+    // the integration talks to the extension through window messages
+    await page.exposeFunction('collectMessage', (action: string) => announced.push(action));
+    await page.addInitScript(() => {
+      window.addEventListener('message', (event) => {
+        const action = (event.data as { action?: unknown } | null)?.action;
+
+        if (typeof action === 'string') void (window as unknown as { collectMessage: (action: string) => void }).collectMessage(action);
+      });
+    });
+
+    await page.goto('docs/getting-started/');
+
+    // preferences, dialogs, toast and motion; a bundler that dropped the integration would announce none
+    await expect.poll(() => announced.filter((action) => action.endsWith('ADD_GLOBAL_STATE')).length).toBeGreaterThanOrEqual(4);
+    expect(errors).toEqual([]);
+  });
+});

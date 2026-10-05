@@ -26,6 +26,28 @@ if (!existsSync(`${packageDist}/bundle.mjs`)) {
   throw new Error('libs/easy-cancelable-promise/dist is missing. Run `yarn build easy-cancelable-promise` first.');
 }
 
+const debugLibrary = here('./src/lib/debug-library.ts');
+
+// The entries that load the DevTools integration. Their packages declare no side effects, so a bundler
+// would drop an import that is there only for what it does.
+const debugEntry = /^(react-global-state-hooks|react-hooks-global-states)\/debug$/;
+
+/** Every store of the site is created with the DevTools integration loaded (see src/lib/debug-library.ts). */
+const devtoolsEverywhere = {
+  name: 'devtools-everywhere',
+  enforce: 'pre',
+  async resolveId(id, importer, options) {
+    // pages are rendered to HTML without it: the extension lives in the browser
+    if (options?.ssr) return null;
+    if (id === 'react-global-state-hooks' && importer !== debugLibrary) return debugLibrary;
+    if (!debugEntry.test(id)) return null;
+
+    const resolved = await this.resolve(id, importer, { ...options, skipSelf: true });
+
+    return resolved && { ...resolved, moduleSideEffects: true };
+  },
+};
+
 export default defineConfig({
   site: SITE,
   base: BASE,
@@ -41,6 +63,7 @@ export default defineConfig({
     processor: unified({ rehypePlugins: [rehypeSymptoms, rehypeCodeBlocks, rehypeTableWrap] }),
   },
   vite: {
+    plugins: [devtoolsEverywhere],
     resolve: {
       // Subpath aliases precede the bare-name alias.
       alias: [
