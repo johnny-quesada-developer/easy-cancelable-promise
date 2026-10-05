@@ -1,6 +1,6 @@
 {
   "name": "easy-cancelable-promise-monorepo",
-  "version": "3.0.0",
+  "version": "3.0.1",
   "private": true,
   "description": "Monorepo for the easy-cancelable-promise package.",
   "workspaces": [
@@ -45,7 +45,7 @@
   "bugs": {
     "url": "https://github.com/johnny-quesada-developer/easy-cancelable-promise/issues"
   },
-  "homepage": "https://github.com/johnny-quesada-developer/easy-cancelable-promise#readme",
+  "homepage": "https://johnny-quesada-developer.github.io/easy-cancelable-promise/",
   "devDependencies": {
     "@eslint/js": "^10.0.1",
     "@types/node": "^20.11.0",
