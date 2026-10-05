@@ -1,3 +1,5 @@
+import { afterEach, beforeEach, vi } from 'vitest';
+
 const { warn, error, info } = console;
 
 const avoidConsoleError = true;
@@ -8,17 +10,17 @@ beforeEach(() => {
   // process.setUncaughtExceptionCaptureCallback(null);
   // process.setUncaughtExceptionCaptureCallback(() => {});
 
-  jest.spyOn(console, 'warn').mockImplementation((...args) => {
+  vi.spyOn(console, 'warn').mockImplementation((...args) => {
     if (avoidConsoleWarn) return;
 
     warn(...args);
   });
-  jest.spyOn(console, 'error').mockImplementation((...args) => {
+  vi.spyOn(console, 'error').mockImplementation((...args) => {
     if (avoidConsoleError) return;
 
     error(...args);
   });
-  jest.spyOn(console, 'info').mockImplementation((...args) => {
+  vi.spyOn(console, 'info').mockImplementation((...args) => {
     if (avoidConsoleInfo) return;
 
     info(...args);
@@ -26,8 +28,8 @@ beforeEach(() => {
 });
 
 afterEach(() => {
-  jest.restoreAllMocks();
-  jest.clearAllMocks();
+  vi.restoreAllMocks();
+  vi.clearAllMocks();
 });
 
 export {};

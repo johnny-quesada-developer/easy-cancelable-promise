@@ -1,11 +1,11 @@
-import { CancelablePromise } from '../';
+import { CancelablePromise } from 'easy-cancelable-promise';
 
 describe('CancelablePromise Static Methods', () => {
   describe('CancelablePromise.all', () => {
     it('should resolve all the promises', async () => {
       expect.assertions(3);
 
-      const cancelLoggers = jest.fn();
+      const cancelLoggers = vi.fn();
 
       const promise = CancelablePromise.all([
         new CancelablePromise<string>((resolve, _, { onCancel }) => {
@@ -56,7 +56,7 @@ describe('CancelablePromise Static Methods', () => {
     it('should cancel the parent promise if one of the child promises is canceled', () => {
       expect.assertions(3);
 
-      const cancelLoggers = jest.fn();
+      const cancelLoggers = vi.fn();
 
       const promise = CancelablePromise.all([
         new CancelablePromise<string>((_, __, utils) => {
@@ -81,7 +81,7 @@ describe('CancelablePromise Static Methods', () => {
     it('should cancel all the promises', () => {
       expect.assertions(3);
 
-      const cancelLoggers = jest.fn();
+      const cancelLoggers = vi.fn();
 
       const promise = CancelablePromise.all([
         new CancelablePromise<string>((_, __, { onCancel }) => {
@@ -108,7 +108,7 @@ describe('CancelablePromise Static Methods', () => {
     it('should handled resolved promises', async () => {
       expect.assertions(3);
 
-      const cancelLoggers = jest.fn();
+      const cancelLoggers = vi.fn();
 
       const promise = CancelablePromise.allSettled([
         new CancelablePromise<string>((resolve, _, { onCancel }) => {
@@ -200,7 +200,7 @@ describe('CancelablePromise Static Methods', () => {
     it('should cancel child promises', async () => {
       expect.assertions(2);
 
-      const cancelLoggers = jest.fn();
+      const cancelLoggers = vi.fn();
 
       const promise = CancelablePromise.allSettled([
         new CancelablePromise<string>((_, __, { onCancel }) => {
@@ -266,7 +266,7 @@ describe('CancelablePromise Static Methods', () => {
     it('should cancel all child promises if the parent promise is canceled', () => {
       expect.assertions(2);
 
-      const cancelLoggers = jest.fn();
+      const cancelLoggers = vi.fn();
 
       const promise = CancelablePromise.race([
         new CancelablePromise<string>((_, __, { onCancel }) => {
@@ -290,7 +290,7 @@ describe('CancelablePromise Static Methods', () => {
     it('should cancel the parent promise if one of the child promises is canceled', () => {
       expect.assertions(2);
 
-      const cancelLoggers = jest.fn();
+      const cancelLoggers = vi.fn();
 
       const promise = CancelablePromise.race([
         new CancelablePromise<string>((_, __, { onCancel }) => {
@@ -328,8 +328,8 @@ describe('CancelablePromise Static Methods', () => {
     it('should not cancel a resolved promise', async () => {
       expect.assertions(3);
 
-      const cancelLogger = jest.fn();
-      const catchLogger = jest.fn();
+      const cancelLogger = vi.fn();
+      const catchLogger = vi.fn();
 
       const promise = CancelablePromise.resolve('result').onCancel(() => {
         cancelLogger();
@@ -357,8 +357,8 @@ describe('CancelablePromise Static Methods', () => {
     it('should not cancel a rejected promise', async () => {
       expect.assertions(3);
 
-      const cancelLogger = jest.fn();
-      const catchLogger = jest.fn();
+      const cancelLogger = vi.fn();
+      const catchLogger = vi.fn();
 
       const promise = CancelablePromise.reject('error').onCancel(() => {
         cancelLogger();
@@ -387,8 +387,8 @@ describe('CancelablePromise Static Methods', () => {
     it('should not cancel a canceled promise', async () => {
       expect.assertions(3);
 
-      const cancelLogger = jest.fn();
-      const catchLogger = jest.fn();
+      const cancelLogger = vi.fn();
+      const catchLogger = vi.fn();
 
       const promise = CancelablePromise.canceled().onCancel(() => {
         cancelLogger();

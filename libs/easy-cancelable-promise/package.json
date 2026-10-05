@@ -1,0 +1,115 @@
+{
+  "name": "easy-cancelable-promise",
+  "_last_version_cancelable-promise-jq_version": "2.6.0",
+  "version": "3.0.0",
+  "private": true,
+  "description": "CancelablePromise is a Promise that can be canceled. It is a Promise that has a status property that can be '`pending`', '`resolved`', '`rejected`' or '`canceled`'. It has an onCancel method that allows you to register a callback that will be called when the promise is canceled. It has a cancel method that allows you to cancel the promise.",
+  "main": "./bundle.cjs",
+  "module": "./bundle.mjs",
+  "types": "./index.d.ts",
+  "sideEffects": false,
+  "exports": {
+    ".": {
+      "types": "./index.d.ts",
+      "import": "./bundle.mjs",
+      "require": "./bundle.cjs"
+    },
+    "./CancelableAbortController": {
+      "types": "./CancelableAbortController.d.ts",
+      "import": "./CancelableAbortController.mjs",
+      "require": "./CancelableAbortController.cjs"
+    },
+    "./CancelablePromise": {
+      "types": "./CancelablePromise.d.ts",
+      "import": "./CancelablePromise.mjs",
+      "require": "./CancelablePromise.cjs"
+    },
+    "./defer": {
+      "types": "./defer.d.ts",
+      "import": "./defer.mjs",
+      "require": "./defer.cjs"
+    },
+    "./groupAsCancelablePromise": {
+      "types": "./groupAsCancelablePromise.d.ts",
+      "import": "./groupAsCancelablePromise.mjs",
+      "require": "./groupAsCancelablePromise.cjs"
+    },
+    "./isCancelableAbortSignal": {
+      "types": "./isCancelableAbortSignal.d.ts",
+      "import": "./isCancelableAbortSignal.mjs",
+      "require": "./isCancelableAbortSignal.cjs"
+    },
+    "./isCancelablePromise": {
+      "types": "./isCancelablePromise.d.ts",
+      "import": "./isCancelablePromise.mjs",
+      "require": "./isCancelablePromise.cjs"
+    },
+    "./isPromise": {
+      "types": "./isPromise.d.ts",
+      "import": "./isPromise.mjs",
+      "require": "./isPromise.cjs"
+    },
+    "./toCancelablePromise": {
+      "types": "./toCancelablePromise.d.ts",
+      "import": "./toCancelablePromise.mjs",
+      "require": "./toCancelablePromise.cjs"
+    },
+    "./types": {
+      "types": "./types.d.ts",
+      "import": "./types.mjs",
+      "require": "./types.cjs"
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "*.js",
+    "*.cjs",
+    "*.mjs",
+    "*.d.ts"
+  ],
+  "author": "Johnny Quesada <johnny-qc@hotmail.com>",
+  "license": "MIT",
+  "scripts": {
+    "test": "yarn ts-check:tests && vitest run",
+    "test:watch": "vitest",
+    "test:quick": "vitest run",
+    "test:dist": "yarn build && yarn test:types && EASY_CANCELABLE_PROMISE_TEST_TARGET=dist vitest run",
+    "test:types": "tsc -p __test__/types/tsconfig.json",
+    "test:debug": "vitest --inspect-brk --no-file-parallelism",
+    "test:coverage": "vitest run --coverage",
+    "test:interop": "yarn build && tsx scripts/test-interop.ts",
+    "build": "yarn ts-check && yarn clean && tsc -p tsconfig.build.json && tsx esbuild.config.ts && tsx ../../scripts/prepare-dist.ts",
+    "validate": "yarn test && yarn test:dist && tsx scripts/test-interop.ts",
+    "npm-publish": "node ../../scripts/assert-publish-version.mjs latest && cd dist && npm publish --tag latest --registry https://registry.npmjs.org/ ${NPM_OTP:+--otp=$NPM_OTP} ${NPM_DRY_RUN:+--dry-run}",
+    "npm-publish:beta": "node ../../scripts/assert-publish-version.mjs beta && cd dist && npm publish --tag beta --registry https://registry.npmjs.org/ ${NPM_OTP:+--otp=$NPM_OTP} ${NPM_DRY_RUN:+--dry-run}",
+    "publish:pkg": "yarn npm-publish",
+    "publish:beta": "yarn npm-publish:beta",
+    "clean": "rm -rf dist coverage",
+    "ts-check": "tsc -p tsconfig.json --noEmit",
+    "ts-check:tests": "tsc -p __test__/tsconfig.json --noEmit",
+    "version": "npm run format && git add -A src",
+    "postversion": "git push && git push --tags",
+    "lint": "eslint src --ext .js,.jsx,.ts,.tsx --max-warnings=0",
+    "lint:fix": "eslint --fix src  --ext .js,.jsx,.ts,.tsx --max-warnings=0",
+    "format": "prettier --write .  --log-level silent && yarn lint:fix"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:johnny-quesada-developer/easy-cancelable-promise.git"
+  },
+  "bugs": {
+    "url": "https://github.com/johnny-quesada-developer/easy-cancelable-promise/issues"
+  },
+  "homepage": "https://github.com/johnny-quesada-developer/easy-cancelable-promise#readme",
+  "keywords": [
+    "promises",
+    "web",
+    "worker",
+    "workers",
+    "threads",
+    "thread",
+    "async",
+    "callbacks",
+    "queue"
+  ]
+}

@@ -1,7 +1,10 @@
 import type { CancelablePromise } from './CancelablePromise';
 
 // Internal symbol for identifying CancelablePromise instances
-export const promise_identifier = Symbol('promise_identifier');
+// Registered globally so the promises are recognized across copies of the package (ESM and CommonJS builds)
+export const promise_identifier = Symbol.for(
+  'easy-cancelable-promise.promise_identifier',
+);
 
 /**
  * Checks if a value is a CancelablePromise.

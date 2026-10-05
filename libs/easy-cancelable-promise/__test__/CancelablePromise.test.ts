@@ -1,4 +1,6 @@
-import CancelablePromise, { CancelableAbortController } from '../';
+import CancelablePromise, {
+  CancelableAbortController,
+} from 'easy-cancelable-promise';
 
 describe('CancelablePromise', () => {
   it('should create a CancelablePromise', () => {
@@ -144,7 +146,13 @@ describe('CancelablePromise', () => {
         return 'handled';
       });
 
-    return promise.cancel('canceled').catch(() => {});
+    return promise
+      .cancel('canceled')
+      .catch(() => {})
+      .then(
+        // vitest counts the assertions as soon as the test settles: let the chains above finish
+        () => new Promise<void>((resolve) => setTimeout(resolve, 0)),
+      );
   });
 
   it('should cancel all the chained promises if cancel is called', () => {
@@ -171,7 +179,7 @@ describe('CancelablePromise', () => {
   it('should unsubscribe to inner onCancel subscription', async () => {
     expect.assertions(2);
 
-    const callsLogger = jest.fn();
+    const callsLogger = vi.fn();
 
     const promise = new CancelablePromise(async (resolve, _, { onCancel }) => {
       const unsubscribe = onCancel(() => {
@@ -199,7 +207,7 @@ describe('CancelablePromise', () => {
   it('should unsubscribe to inner onProgress subscription', async () => {
     expect.assertions(3);
 
-    const callsLogger = jest.fn();
+    const callsLogger = vi.fn();
 
     const promise = new CancelablePromise(
       async (resolve, _, { onProgress, reportProgress }) => {
@@ -227,7 +235,7 @@ describe('CancelablePromise', () => {
   it('should unsubscribe onCancel with CancelableAbortController', async () => {
     expect.assertions(2);
 
-    const callsLogger = jest.fn();
+    const callsLogger = vi.fn();
 
     const subscriptionController = new CancelableAbortController();
 
@@ -249,7 +257,7 @@ describe('CancelablePromise', () => {
   it('should unsubscribe onProgress with CancelableAbortController', async () => {
     expect.assertions(2);
 
-    const callsLogger = jest.fn();
+    const callsLogger = vi.fn();
 
     const subscriptionController = new CancelableAbortController();
 
@@ -275,7 +283,7 @@ describe('CancelablePromise', () => {
   it('should be able to unsubscribe specific callbacks', async () => {
     expect.assertions(2);
 
-    const callsLogger = jest.fn();
+    const callsLogger = vi.fn();
 
     const abortController = new CancelableAbortController();
 

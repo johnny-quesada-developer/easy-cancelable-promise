@@ -1,0 +1,131 @@
+{
+  "name": "easy-cancelable-promise",
+  "sourceRoot": "libs/easy-cancelable-promise/src",
+  "projectType": "library",
+  "tags": ["type:lib"],
+  "targets": {
+    "build": {
+      "executor": "nx:run-commands",
+      "outputs": ["{projectRoot}/dist"],
+      "options": {
+        "command": "yarn build",
+        "cwd": "libs/easy-cancelable-promise"
+      }
+    },
+    "validate": {
+      "executor": "nx:run-commands",
+      "outputs": ["{projectRoot}/dist"],
+      "options": {
+        "command": "yarn validate",
+        "cwd": "libs/easy-cancelable-promise"
+      }
+    },
+    "test": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "yarn test",
+        "cwd": "libs/easy-cancelable-promise"
+      }
+    },
+    "test:quick": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "yarn test:quick",
+        "cwd": "libs/easy-cancelable-promise"
+      }
+    },
+    "test:dist": {
+      "executor": "nx:run-commands",
+      "outputs": ["{projectRoot}/dist"],
+      "options": {
+        "command": "yarn test:dist",
+        "cwd": "libs/easy-cancelable-promise"
+      }
+    },
+    "test:types": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "yarn test:types",
+        "cwd": "libs/easy-cancelable-promise"
+      }
+    },
+    "test:debug": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "yarn test:debug",
+        "cwd": "libs/easy-cancelable-promise"
+      }
+    },
+    "test:coverage": {
+      "executor": "nx:run-commands",
+      "outputs": ["{projectRoot}/coverage"],
+      "options": {
+        "command": "yarn test:coverage",
+        "cwd": "libs/easy-cancelable-promise"
+      }
+    },
+    "test:interop": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "yarn test:interop",
+        "cwd": "libs/easy-cancelable-promise"
+      }
+    },
+    "clean": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "yarn clean",
+        "cwd": "libs/easy-cancelable-promise"
+      }
+    },
+    "ts-check": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "yarn ts-check",
+        "cwd": "libs/easy-cancelable-promise"
+      }
+    },
+    "ts-check:tests": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "yarn ts-check:tests",
+        "cwd": "libs/easy-cancelable-promise"
+      }
+    },
+    "publish:pkg": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "yarn publish:pkg",
+        "cwd": "libs/easy-cancelable-promise"
+      }
+    },
+    "publish:beta": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "yarn publish:beta",
+        "cwd": "libs/easy-cancelable-promise"
+      }
+    },
+    "lint": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "yarn lint",
+        "cwd": "libs/easy-cancelable-promise"
+      }
+    },
+    "lint:fix": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "yarn lint:fix",
+        "cwd": "libs/easy-cancelable-promise"
+      }
+    },
+    "format": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "yarn format",
+        "cwd": "libs/easy-cancelable-promise"
+      }
+    }
+  }
+}
