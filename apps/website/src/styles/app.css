@@ -1,5 +1,5 @@
 /*
- * No Preflight: the reference cascade depends on its own reset (base.css). Utilities come last and
+ * No Preflight: the cascade depends on its own reset (base.css). Utilities come last and
  * unlayered so they outrank it. An @import that follows any other rule is invalid CSS and gets dropped.
  */
 @layer theme, base;

@@ -1,4 +1,4 @@
-/* Workbench previews: white cards on the soft stage, green for changed values (reference .preview-card). */
+/* Workbench previews: white cards on the soft stage, green for changed values. */
 .demo {
   display: grid;
   gap: 20px;
@@ -287,7 +287,7 @@
   }
 }
 
-/* Two measurements side by side and the result on its own row: every value fits on one line, so nothing moves when the numbers arrive. */
+/* Two measurements per row. A label may take two lines, a value never does, so nothing moves when the numbers arrive. */
 .demo-stats--fixed {
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
@@ -296,10 +296,14 @@
   grid-column: 1 / -1;
 }
 
-.demo-stats--fixed :is(dt, dd) {
-  overflow: hidden;
+.demo-stats--fixed .demo-stat {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.demo-stats--fixed dd {
   white-space: nowrap;
-  text-overflow: ellipsis;
 }
 
 .demo-stat dt {
@@ -400,7 +404,7 @@
 
 .demo-lane {
   display: grid;
-  grid-template-columns: 62px minmax(0, 1fr) 74px;
+  grid-template-columns: 50px minmax(0, 1fr) 100px;
   gap: 8px;
   align-items: center;
   font-family: var(--font-mono);
@@ -432,6 +436,14 @@
   }
 }
 
+.demo-lane > span {
+  white-space: nowrap;
+}
+
+.demo-lane > span:last-child {
+  text-align: right;
+}
+
 .demo-lane--stopped {
   color: var(--color-muted);
 }
@@ -441,7 +453,14 @@
 }
 
 /* The clock of an example: drawn on every frame, so it also shows that the page is never blocked. */
+/* Its width is reserved for the longest value, and the main button keeps its width when its label changes. */
+.demo-actions .demo-button--primary {
+  min-width: 112px;
+}
+
 .demo-clock {
+  flex: 0 0 9ch;
+  text-align: right;
   margin-left: auto;
   font-family: var(--font-mono);
   font-size: calc(12px * var(--type-scale));

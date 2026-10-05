@@ -10,7 +10,7 @@ export async function limits() {
     }, 20),
   );
 
-  const cancelable = toCancelablePromise<Promise<string>, string>(native);
+  const cancelable = toCancelablePromise(native);
 
   // the wrapper is canceled: whoever awaits it stops waiting
   cancelable.cancel('Not needed');

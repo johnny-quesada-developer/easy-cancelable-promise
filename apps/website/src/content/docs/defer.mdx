@@ -17,7 +17,7 @@ import utils from '@snippets/defer/utils.ts?raw';
 Sometimes the code that settles a promise is not the code that creates it: an event handler, a message from
 another window, a test. `defer` returns the promise together with its controls.
 
-<CodeBlock code={basic} lang="ts" title="defer.ts" />
+<CodeBlock code={basic} lang="ts" title="basic.ts" />
 
 ## What defer returns
 
@@ -37,7 +37,7 @@ callback of a `CancelablePromise` receives.
 | `isPending`      | `true` while the promise is not settled                            |
 | `isCanceled`     | `true` after the promise was canceled                              |
 
-<CodeBlock code={utils} lang="ts" title="utilities.ts" />
+<CodeBlock code={utils} lang="ts" title="utils.ts" />
 
 <Callout type="note" title="onCancel here returns the unsubscribe function">
   `deferred.onCancel` is the utility, so it returns a function that removes the listener.
@@ -48,7 +48,7 @@ callback of a `CancelablePromise` receives.
 
 A deferred promise turns an event into something you can `await`, with a timeout that cancels it.
 
-<CodeBlock code={event} lang="ts" title="waitForClick.ts" />
+<CodeBlock code={event} lang="ts" title="event.ts" />
 
 ## Next
 

@@ -13,7 +13,7 @@ interface SectionHeadProps {
   id?: string;
 }
 
-/** Reference `.section-head`: eyebrow, 38px title, optional lead, 35px bottom margin. */
+/** Eyebrow, 38px title, optional lead, 35px bottom margin. */
 export function SectionHead({ kicker, title, lead, className, id }: SectionHeadProps) {
   return (
     <div className={`mb-[35px] block max-w-[760px] ${className ?? ''}`.trim()}>

@@ -1,5 +1,5 @@
 /*
- * Design tokens from the complete-site reference (the shared design system), registered
+ * Design tokens of the site (the shared design system), registered
  * as the Tailwind theme. src/lib/contrast.test.ts parses the `--color-*` hex literals out of this file.
  * `static` because the remaining stylesheets read these through `var()`.
  */
@@ -59,12 +59,12 @@
   --shadow-dialog: 0 24px 100px #10201520;
 
   /* layout */
-  --container-wrap: 1640px;
+  --container-wrap: 1840px;
   --container-wide: 1840px;
   --spacing-header: 78px;
   --spacing-header-mobile: 65px;
 
-  /* desktop-first reference breakpoints; use the max-* variants (max-md = width < 761px) */
+  /* desktop-first breakpoints; use the max-* variants (max-md = width < 761px) */
   --breakpoint-xs: 371px;
   --breakpoint-sm: 641px;
   --breakpoint-md: 761px;

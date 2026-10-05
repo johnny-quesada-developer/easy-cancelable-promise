@@ -13,6 +13,7 @@ import firstPromise from '@snippets/getting-started/first-promise.ts?raw';
 import useIt from '@snippets/getting-started/use-it.ts?raw';
 import fetchSnippet from '@snippets/getting-started/fetch.ts?raw';
 import progress from '@snippets/getting-started/progress.ts?raw';
+import asyncCallback from '@snippets/troubleshooting/async-callback.ts?raw';
 
 ## Install
 
@@ -31,7 +32,7 @@ A `CancelablePromise` is created like a `Promise`. The callback receives `resolv
 parameter with the utilities of the promise. `onCancel` is the one you will use most: it registers what has to
 happen when the promise is canceled.
 
-<CodeBlock code={firstPromise} lang="ts" title="wait.ts" />
+<CodeBlock code={firstPromise} lang="ts" title="first-promise.ts" />
 
 Without `onCancel` the promise would still be canceled, but the timer would keep running. Canceling a promise
 tells everyone to stop waiting. `onCancel` is where the work itself is stopped.
@@ -41,22 +42,26 @@ tells everyone to stop waiting. `onCancel` is where the work itself is stopped.
 `CancelablePromise` extends `Promise`. Everything that accepts a promise accepts it: `await`, `then`, `catch`,
 `finally`, `Promise.all`. On top of that it has a `status` and a `cancel` method.
 
-<CodeBlock code={useIt} lang="ts" title="main.ts" />
+<CodeBlock code={useIt} lang="ts" title="use-it.ts" />
 
 ## Cancel a real request
 
 The same pattern works for anything that can be stopped. For `fetch`, that is an `AbortController`.
 
-<CodeBlock code={fetchSnippet} lang="ts" title="fetchUser.ts" />
+<CodeBlock code={fetchSnippet} lang="ts" title="fetch.ts" />
 
 The code that cancels does not need to know there is a request behind the promise. The promise handles its own
 cleanup.
+
+The callback can also be an `async` function. An error it throws rejects the promise.
+
+<CodeBlock code={asyncCallback} lang="ts" title="async-callback.ts" />
 
 ## Report progress
 
 The utilities also include `reportProgress`. Whoever holds the promise listens with `onProgress`.
 
-<CodeBlock code={progress} lang="ts" title="upload.ts" />
+<CodeBlock code={progress} lang="ts" title="progress.ts" />
 
 ## Where to go next
 

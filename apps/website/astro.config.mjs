@@ -37,7 +37,7 @@ export default defineConfig({
   integrations: [react(), mdx(), sitemap()],
   markdown: {
     shikiConfig: { themes: shikiThemes, defaultColor: false, cssVariablePrefix: CSS_VARIABLE_PREFIX },
-    // unified (not Astro 7's default Sätteri): the rehype plugins give MDX the reference document structure.
+    // unified (not Astro 7's default Sätteri): the rehype plugins give MDX the document structure of the site.
     processor: unified({ rehypePlugins: [rehypeSymptoms, rehypeCodeBlocks, rehypeTableWrap] }),
   },
   vite: {

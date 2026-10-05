@@ -23,12 +23,20 @@ interface Pagefind {
 
 let loading: Promise<Pagefind> | undefined;
 
+/**
+ * The index lives in public/, outside the module graph. The dev server adds `?import` to every dynamic
+ * import it can see and answers 500 for a file of public/ requested that way, which left search
+ * unavailable in `yarn dev`. An import the bundler cannot analyze is requested as written, in dev and
+ * in the built site.
+ */
+const importFromPublic = new Function('url', 'return import(url)') as (url: string) => Promise<Pagefind>;
+
 // Static search: Pagefind indexes the built HTML (see the `build` script). Its JS API is fetched the
 // first time the dialog opens, so pages that never search pay nothing.
 function loadPagefind(): Promise<Pagefind> {
   if (loading) return loading;
 
-  loading = import(/* @vite-ignore */ withBase('pagefind/pagefind.js'))
+  loading = importFromPublic(withBase('pagefind/pagefind.js'))
     .then(async (pagefind: Pagefind) => {
       await pagefind.init?.();
       return pagefind;
@@ -118,7 +126,7 @@ export function SearchDialog() {
   }, [onShortcut]);
 
   const onKeyDown = (event: ReactKeyboardEvent<HTMLDialogElement>) => {
-    // A search input swallows Escape to clear itself; close the dialog instead, as the reference does.
+    // A search input swallows Escape to clear itself; close the dialog instead.
     if (event.key === 'Escape') {
       event.preventDefault();
       dialog.close();

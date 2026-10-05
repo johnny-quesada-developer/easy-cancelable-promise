@@ -43,10 +43,9 @@ The values can be cancelable promises, native promises, plain values, or any mix
 
 <CodeBlock code={allSettled} lang="ts" title="all-settled.ts" />
 
-<Callout type="warning" title="The status 'canceled' is not in the type">
-  A canceled promise is reported as `{ status: 'canceled', reason }`. The return type uses the native
-  `PromiseSettledResult`, which only declares `'fulfilled'` and `'rejected'`, so TypeScript needs the comparison
-  to be made as a string.
+<Callout type="note" title="Three outcomes, not two">
+  Besides `'fulfilled'` and `'rejected'`, a result can be `{ status: 'canceled', reason }`. The type of each
+  result is `CancelablePromiseSettledResult`, which includes it.
 </Callout>
 
 ## race

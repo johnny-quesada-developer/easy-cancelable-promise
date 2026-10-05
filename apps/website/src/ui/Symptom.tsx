@@ -7,7 +7,7 @@ interface SymptomProps {
   children: ReactNode;
 }
 
-/** Troubleshooting disclosure row (reference `.symptom`). `id` is the deep-link anchor. */
+/** Troubleshooting disclosure row. `id` is the deep-link anchor. */
 export function Symptom({ id, title, open, children }: SymptomProps) {
   return (
     <details className="symptom" id={id} open={open}>

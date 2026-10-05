@@ -27,6 +27,7 @@ export type {
   Subscription,
   CancelCallback,
   CancelablePromiseCallback,
+  CancelablePromiseSettledResult,
   CancelablePromiseUtils,
   OnProgressCallback,
   PromiseStatus,

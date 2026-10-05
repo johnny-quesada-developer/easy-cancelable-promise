@@ -15,7 +15,7 @@ interface Side {
   found: number;
   /** Steps that ran after Stop was pressed. */
   afterStop: number;
-  /** Time the work kept running after Stop was pressed, in milliseconds. */
+  /** Time between Stop and the last step that ran after it, in milliseconds. 0 when no step ran. */
   wasted: number;
 }
 
@@ -64,18 +64,25 @@ export function CancelDemo() {
     startClock();
     log.write(`started · ${STEPS} steps in ${duration} s, in a Promise and in a CancelablePromise`);
 
+    // Measured when the step runs, not when React applies the update: a step that ran right before
+    // Stop must not be counted as one that ran after it.
+    const measure = (set: typeof setNative) => ({ step, found }: { step: number; found: number }) => {
+      const sinceStop = stoppedAt.current === null ? null : performance.now() - stoppedAt.current;
+
+      set((current) => ({
+        ...current,
+        step,
+        found,
+        afterStop: current.afterStop + (sinceStop === null ? 0 : 1),
+        wasted: sinceStop ?? current.wasted,
+      }));
+    };
+
     // a native promise: Stop can only stop listening, the steps keep running
     searchWithNativePromise({
       steps: STEPS,
       pause,
-      onStep: ({ step, found }) =>
-        setNative((current) => ({
-          ...current,
-          step,
-          found,
-          afterStop: stoppedAt.current === null ? 0 : current.afterStop + 1,
-          wasted: stoppedAt.current === null ? 0 : performance.now() - stoppedAt.current,
-        })),
+      onStep: measure(setNative),
     }).then((found) => {
       setNative((current) => ({ ...current, found, status: stoppedAt.current === null ? 'resolved' : 'finished' }));
 
@@ -90,14 +97,7 @@ export function CancelDemo() {
     task.current = searchWithCancelablePromise({
       steps: STEPS,
       pause,
-      onStep: ({ step, found }) =>
-        setCancelable((current) => ({
-          ...current,
-          step,
-          found,
-          afterStop: stoppedAt.current === null ? 0 : current.afterStop + 1,
-          wasted: stoppedAt.current === null ? 0 : performance.now() - stoppedAt.current,
-        })),
+      onStep: measure(setCancelable),
     });
 
     task.current.then(
@@ -135,7 +135,7 @@ export function CancelDemo() {
           <span style={{ width: `${(side.step / STEPS) * 100}%` }} />
         </div>
         <dl className="demo-stats demo-stats--fixed">
-          <div className={`demo-stat ${side.status === 'canceled' ? 'demo-stat--good' : side.status === 'still running' || side.status === 'finished' ? 'demo-stat--bad' : ''}`}>
+          <div className={`demo-stat demo-stat--wide ${side.status === 'canceled' ? 'demo-stat--good' : side.status === 'still running' || side.status === 'finished' ? 'demo-stat--bad' : ''}`}>
             <dt>Status</dt>
             <dd data-testid={`${name}-status`}>{side.status}</dd>
           </div>
@@ -145,17 +145,17 @@ export function CancelDemo() {
               {side.step} / {STEPS}
             </dd>
           </div>
+          <div className="demo-stat">
+            <dt>Primes found</dt>
+            <dd data-testid={`${name}-found`}>{count(side.found)}</dd>
+          </div>
           <div className={`demo-stat ${tone}`}>
             <dt>Steps after Stop</dt>
             <dd data-testid={`${name}-after-stop`}>{stopped ? side.afterStop : '—'}</dd>
           </div>
           <div className={`demo-stat ${tone}`}>
-            <dt>Work after Stop</dt>
+            <dt>Last step after Stop</dt>
             <dd data-testid={`${name}-wasted`}>{stopped ? milliseconds(side.wasted) : '—'}</dd>
-          </div>
-          <div className="demo-stat demo-stat--wide">
-            <dt>Primes found</dt>
-            <dd data-testid={`${name}-found`}>{count(side.found)}</dd>
           </div>
         </dl>
       </section>

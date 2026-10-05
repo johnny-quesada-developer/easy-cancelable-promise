@@ -2,6 +2,7 @@ import type {
   Subscription,
   CancelCallback,
   CancelablePromiseCallback,
+  CancelablePromiseSettledResult,
   CancelablePromiseUtils,
   OnProgressCallback,
   PromiseStatus,
@@ -169,7 +170,10 @@ export class CancelablePromise<TResult = void> extends Promise<TResult> {
 
     // Execute the custom callback with cancelable utilities
     try {
-      callback(resolveCallback, rejectCallback, utils);
+      const result: unknown = callback(resolveCallback, rejectCallback, utils);
+
+      // an async callback does not throw, it returns a promise that rejects
+      if (isPromise(result)) result.then(undefined, rejectCallback);
     } catch (error) {
       // a callback that throws rejects the promise, same as the native Promise
       rejectCallback(error);
@@ -549,18 +553,33 @@ export class CancelablePromise<TResult = void> extends Promise<TResult> {
    * @param values An array of Promises.
    * @returns A new Promise.
    */
-  static allSettled = <TResult extends readonly unknown[] | []>(
+  static allSettled<TResult extends readonly unknown[] | []>(
+    values: TResult,
+  ): CancelablePromise<{
+    -readonly [P in keyof TResult]: CancelablePromiseSettledResult<
+      Awaited<TResult[P]>
+    >;
+  }>;
+
+  // Keeps the static side of the class compatible with the one of Promise, calls resolve to the signature above
+  static allSettled<TResult extends readonly unknown[] | []>(
     values: TResult,
   ): CancelablePromise<{
     -readonly [P in keyof TResult]: PromiseSettledResult<Awaited<TResult[P]>>;
-  }> => {
+  }>;
+
+  static allSettled<TResult extends readonly unknown[] | []>(
+    values: TResult,
+  ): unknown {
     type Result = {
-      -readonly [P in keyof TResult]: PromiseSettledResult<Awaited<TResult[P]>>;
+      -readonly [P in keyof TResult]: CancelablePromiseSettledResult<
+        Awaited<TResult[P]>
+      >;
     };
 
     return new CancelablePromise<Result>((resolve, _, { onCancel }) => {
       // the results are stored by position, the same promise can be more than once in the values
-      const results: PromiseSettledResult<unknown>[] = new Array(
+      const results: CancelablePromiseSettledResult<unknown>[] = new Array(
         values.length,
       ).fill(null);
 
@@ -587,9 +606,8 @@ export class CancelablePromise<TResult = void> extends Promise<TResult> {
             },
             (reason) => {
               results[index] = {
-                status: (cancelable.status === 'canceled'
-                  ? 'canceled'
-                  : ('rejected' as unknown)) as 'rejected',
+                status:
+                  cancelable.status === 'canceled' ? 'canceled' : 'rejected',
                 reason,
               };
             },
@@ -605,7 +623,7 @@ export class CancelablePromise<TResult = void> extends Promise<TResult> {
           });
       });
     });
-  };
+  }
 }
 
 /**
@@ -632,14 +650,18 @@ CancelablePromise.prototype.constructor = Promise;
  * */
 export const toCancelablePromise = <
   T = unknown,
-  TResult = T extends Promise<unknown>
-    ? CancelablePromise<Awaited<T>>
-    : CancelablePromise<T>,
+  // the result of the promise, of the value, or of what the function returns
+  TResult = T extends (...args: never[]) => infer TReturn
+    ? Awaited<TReturn>
+    : Awaited<T>,
 >(
   source: T,
 ): CancelablePromise<TResult> => {
   if (isCancelablePromise(source)) return source as CancelablePromise<TResult>;
-  if (typeof source === 'function') return toCancelablePromise(source());
+
+  if (typeof source === 'function') {
+    return toCancelablePromise(source()) as CancelablePromise<TResult>;
+  }
 
   if (!isPromise(source)) {
     return new CancelablePromise<TResult>((resolve) =>

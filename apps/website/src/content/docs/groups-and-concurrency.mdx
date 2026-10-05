@@ -19,7 +19,7 @@ import errors from '@snippets/group/errors.ts?raw';
 `groupAsCancelablePromise` takes a list of tasks and returns one `CancelablePromise` that resolves with all the
 results. A task is a function that returns a promise, or a promise that is already running.
 
-<CodeBlock code={basic} lang="ts" title="group.ts" />
+<CodeBlock code={basic} lang="ts" title="basic.ts" />
 
 - A function is called when its turn arrives. That is what makes the concurrency limit work.
 - The results keep the position of their tasks, no matter which one finishes first.
@@ -34,7 +34,7 @@ results. A task is a function that returns a promise, or a promise that is alrea
 
 One call cancels the tasks that are running and leaves the tasks in the queue unstarted.
 
-<CodeBlock code={cancel} lang="ts" title="cancel-group.ts" />
+<CodeBlock code={cancel} lang="ts" title="cancel.ts" />
 
 It also works the other way: if one task is canceled, the group is canceled, and that cancels the rest.
 

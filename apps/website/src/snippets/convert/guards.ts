@@ -22,4 +22,4 @@ export const examples = [
 ];
 
 /** Accepts anything and always works with a CancelablePromise. */
-export const normalize = (value: unknown) => toCancelablePromise<unknown, unknown>(value);
+export const normalize = (value: unknown) => toCancelablePromise(value);

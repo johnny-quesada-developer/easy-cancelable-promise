@@ -1,6 +1,7 @@
 import { CancelablePromise } from 'easy-cancelable-promise';
 import type {
   CancelablePromiseCallback,
+  CancelablePromiseSettledResult,
   CancelablePromiseUtils,
   CancelCallback,
   OnProgressCallback,
@@ -30,3 +31,7 @@ const options: SubscriptionParams = { signal: new AbortController().signal };
 const promise = new CancelablePromise(callback).onCancel(onCancel, options).onProgress(onProgress, options);
 
 export const status: PromiseStatus = promise.status; // 'pending' | 'resolved' | 'rejected' | 'canceled'
+
+// one outcome of CancelablePromise.allSettled: 'fulfilled', 'rejected' or 'canceled'
+export const describe = (result: CancelablePromiseSettledResult<number>) =>
+  result.status === 'fulfilled' ? `value ${result.value}` : `${result.status}: ${String(result.reason)}`;

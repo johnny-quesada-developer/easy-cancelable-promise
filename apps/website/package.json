@@ -11,13 +11,17 @@
     "preview": "ASTRO_TELEMETRY_DISABLED=1 astro preview",
     "test": "vitest run",
     "test:watch": "vitest",
+    "test:debug": "vitest --inspect-brk --no-file-parallelism",
     "test:visual": "yarn build && playwright test",
     "test:visual:run": "playwright test",
     "test:visual:update": "yarn build && playwright test --update-snapshots",
     "test:visual:report": "playwright show-report",
     "ts-check": "ASTRO_TELEMETRY_DISABLED=1 astro check",
     "check:links": "node scripts/check-links.mjs",
-    "make:og": "node scripts/make-og.mjs"
+    "make:og": "node scripts/make-og.mjs",
+    "lint": "eslint . --max-warnings=0",
+    "lint:fix": "eslint . --fix --max-warnings=0",
+    "validate": "yarn lint && yarn ts-check && yarn test && yarn build && yarn check:links && yarn test:visual:run"
   },
   "dependencies": {
     "@astrojs/mdx": "^8.0.1",

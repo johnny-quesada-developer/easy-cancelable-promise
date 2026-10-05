@@ -16,7 +16,7 @@ import dispose from '@snippets/signals/dispose.ts?raw';
 `onCancel` and `onProgress` accept an options object with a `signal`. When the signal is aborted, the listener
 is removed. The promise itself is not affected.
 
-<CodeBlock code={withPromise} lang="ts" title="mounted.ts" />
+<CodeBlock code={withPromise} lang="ts" title="with-promise.ts" />
 
 This is the pattern for a screen or a component: one controller for everything it subscribes to, aborted when
 it goes away. The task keeps running for whoever else needs it.

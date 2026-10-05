@@ -8,7 +8,7 @@ interface NavDrawerProps {
   pathname: string;
 }
 
-/** Mobile navigation sheet (reference `#nav-dialog`). */
+/** Mobile navigation sheet. */
 export function NavDrawer({ pathname }: NavDrawerProps) {
   const dialog = useDialog('navigation');
 

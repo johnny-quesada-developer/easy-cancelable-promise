@@ -5,6 +5,7 @@
  * For every internal reference in every HTML file (a[href], img/video/source/script[src], link[href],
  * video[poster], meta og:image and canonical) verifies that the target file exists under dist/ and, for
  * #fragments, that the id exists in the target page. External http(s) links are not fetched.
+ * The links of the repository README that point to this site are checked the same way.
  *
  *   node scripts/check-links.mjs
  */
@@ -107,7 +108,29 @@ for (const file of htmlFiles) {
   }
 }
 
-console.log(`[check-links] ${htmlFiles.length} pages, ${checked} internal references checked`);
+// The README of the repository links to this site: every one of those links must exist in the build.
+const readmePath = path.resolve(here, '../../../README.md');
+let readmeLinks = 0;
+
+if (fs.existsSync(readmePath)) {
+  const site = `${origin}${base}/`;
+  const urls = [...fs.readFileSync(readmePath, 'utf8').matchAll(/\]\((https?:\/\/[^)\s]+)\)/g)].map((match) => match[1]);
+
+  for (const raw of urls.filter((url) => url.startsWith(site))) {
+    const url = new URL(raw);
+    const target = resolveTarget(url.pathname);
+
+    readmeLinks += 1;
+
+    if (!target) {
+      problems.push(`README.md: "${raw}" -> no such page`);
+    } else if (url.hash.length > 1 && !idsOf(target).has(decodeURIComponent(url.hash.slice(1)))) {
+      problems.push(`README.md: "${raw}" -> missing anchor in ${path.relative(dist, target)}`);
+    }
+  }
+}
+
+console.log(`[check-links] ${htmlFiles.length} pages, ${checked} internal references checked, ${readmeLinks} README links to the site checked`);
 
 if (problems.length) {
   console.error(`[check-links] ${problems.length} problem(s):\n  ${[...new Set(problems)].join('\n  ')}`);

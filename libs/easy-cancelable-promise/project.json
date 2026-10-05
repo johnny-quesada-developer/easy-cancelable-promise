@@ -2,11 +2,15 @@
   "name": "easy-cancelable-promise",
   "sourceRoot": "libs/easy-cancelable-promise/src",
   "projectType": "library",
-  "tags": ["type:lib"],
+  "tags": [
+    "type:lib"
+  ],
   "targets": {
     "build": {
       "executor": "nx:run-commands",
-      "outputs": ["{projectRoot}/dist"],
+      "outputs": [
+        "{projectRoot}/dist"
+      ],
       "options": {
         "command": "yarn build",
         "cwd": "libs/easy-cancelable-promise"
@@ -14,11 +18,14 @@
     },
     "validate": {
       "executor": "nx:run-commands",
-      "outputs": ["{projectRoot}/dist"],
+      "outputs": [
+        "{projectRoot}/dist"
+      ],
       "options": {
         "command": "yarn validate",
         "cwd": "libs/easy-cancelable-promise"
-      }
+      },
+      "cache": false
     },
     "test": {
       "executor": "nx:run-commands",
@@ -36,7 +43,9 @@
     },
     "test:dist": {
       "executor": "nx:run-commands",
-      "outputs": ["{projectRoot}/dist"],
+      "outputs": [
+        "{projectRoot}/dist"
+      ],
       "options": {
         "command": "yarn test:dist",
         "cwd": "libs/easy-cancelable-promise"
@@ -58,7 +67,9 @@
     },
     "test:coverage": {
       "executor": "nx:run-commands",
-      "outputs": ["{projectRoot}/coverage"],
+      "outputs": [
+        "{projectRoot}/coverage"
+      ],
       "options": {
         "command": "yarn test:coverage",
         "cwd": "libs/easy-cancelable-promise"

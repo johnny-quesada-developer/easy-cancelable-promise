@@ -12,7 +12,7 @@ interface CalloutProps {
   children: ReactNode;
 }
 
-/** Reference `.callout`: status icon, short title, supporting text. Usable from MDX. */
+/** Status icon, short title, supporting text. Usable from MDX. */
 export function Callout({ type = 'note', title, className = '', children }: CalloutProps) {
   return (
     <aside className={`callout ${tone[type]} ${className}`.trim()}>

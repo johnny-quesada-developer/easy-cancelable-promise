@@ -6,9 +6,6 @@ order: 2
 symptoms: true
 ---
 
-import { CodeBlock } from '../../ui/CodeBlock';
-import asyncCallback from '@snippets/troubleshooting/async-callback.ts?raw';
-
 ## Canceling does not stop the work
 
 `cancel` tells everyone to stop waiting. The work stops only if the promise has an `onCancel` listener that
@@ -44,13 +41,6 @@ Use `isCancelablePromise(value)` instead. It recognizes the promises of every co
 Versions before 3 also had one copy per entry: a promise created through `easy-cancelable-promise/defer` was not
 an instance of the class exported by `easy-cancelable-promise/CancelablePromise`. That is fixed in version 3.
 
-## An error inside an async callback is not caught
-
-The callback may be `async`, but an error thrown after its first `await` rejects the promise that the `async`
-function returns, not the `CancelablePromise`. Catch it and call `reject`.
-
-<CodeBlock code={asyncCallback} lang="ts" title="load.ts" />
-
 ## A progress listener is never called
 
 Progress reports are not stored. A listener receives the reports sent after it was registered.
@@ -62,17 +52,6 @@ Progress reports are not stored. A listener receives the reports sent after it w
 ## groupAsCancelablePromise returns null
 
 The list of tasks is empty. Check the list before calling it, or handle `null`.
-
-## The status 'canceled' is a type error with allSettled
-
-`CancelablePromise.allSettled` reports a canceled promise with the status `'canceled'`, but its return type is
-the native `PromiseSettledResult`, which only declares `'fulfilled'` and `'rejected'`. Compare the status as a
-string: `(result.status as string) === 'canceled'`.
-
-## The value received by then is typed as a promise
-
-This happens with `toCancelablePromise` when the type arguments are inferred. Pass both:
-`toCancelablePromise<Promise<User>, User>(promise)`.
 
 ## Cannot find name 'AbortController'
 

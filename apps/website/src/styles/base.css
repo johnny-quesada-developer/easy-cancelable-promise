@@ -178,6 +178,16 @@ kbd {
   font-family: var(--font-mono);
 }
 
+/*
+ * Inline monospace text has its own line metrics, and with the line-height of the paragraph it makes
+ * its line a fraction of a pixel taller. The total height of the page then rounds differently
+ * between two renders. A line-height of 1 keeps it inside the line of the text around it.
+ */
+:not(pre) > code,
+kbd {
+  line-height: 1;
+}
+
 kbd {
   font-size: calc(10px * var(--type-scale));
   border: 1px solid var(--color-line);

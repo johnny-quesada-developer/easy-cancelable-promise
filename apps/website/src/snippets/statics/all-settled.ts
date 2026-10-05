@@ -11,7 +11,6 @@ export async function allSettled() {
     canceled,
   ]);
 
-  // a canceled promise is reported with the status 'canceled'.
-  // The type only knows 'fulfilled' and 'rejected', so compare it as a string.
-  return results.map((result) => result.status as string); // ['fulfilled', 'rejected', 'canceled']
+  // besides 'fulfilled' and 'rejected', a canceled promise is reported with the status 'canceled'
+  return results.map((result) => result.status); // ['fulfilled', 'rejected', 'canceled']
 }

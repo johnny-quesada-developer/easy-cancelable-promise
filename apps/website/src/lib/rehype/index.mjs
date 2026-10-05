@@ -1,5 +1,5 @@
 /**
- * Small rehype plugins that give MDX output the reference document structure:
+ * Small rehype plugins that give MDX output the document structure of the site:
  * - fenced code becomes a `.code-block` panel with a header row and a copy control
  * - tables scroll inside a `.table-wrap`
  * - a `symptoms: true` article groups each h2 and its content into a `.symptom` disclosure

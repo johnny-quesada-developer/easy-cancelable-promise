@@ -18,7 +18,7 @@ import outside from '@snippets/progress/report-outside.ts?raw';
 A native promise has one moment to say something: the end. A `CancelablePromise` can report while it works,
 through `reportProgress`.
 
-<CodeBlock code={report} lang="ts" title="processItems.ts" />
+<CodeBlock code={report} lang="ts" title="report.ts" />
 
 `reportProgress` takes a number and, optionally, any metadata. The number is yours to define. A percentage from
 `0` to `100` is the convention used by this library and by `groupAsCancelablePromise`.

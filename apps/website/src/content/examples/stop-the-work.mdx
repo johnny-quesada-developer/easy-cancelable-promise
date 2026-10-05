@@ -45,7 +45,7 @@ The cancelable version registers one line with `onCancel`. Canceling the promise
 step never happens.
 
 <Callout type="note" title="What is measured">
-  Steps after Stop counts the steps each promise ran after you pressed the button. Work after Stop is the
-  time between the button and the last step of that promise. Both are measured in your browser, on the real
+  Steps after Stop counts the steps each promise ran after you pressed the button. Last step after Stop is
+  the time between the button and the last step that promise ran, or 0 when it ran none. Both are measured in your browser, on the real
   library.
 </Callout>

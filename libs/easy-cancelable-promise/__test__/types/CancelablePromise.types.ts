@@ -10,6 +10,7 @@ import RootDefault, {
 } from 'easy-cancelable-promise';
 import type {
   CancelableAbortSignal,
+  CancelablePromiseSettledResult,
   CancelablePromiseUtils,
   DeferredPromise,
   PromiseStatus,
@@ -159,7 +160,12 @@ const allSettled = CancelablePromise.allSettled([promise, 1] as const);
 expectType<
   Equal<
     typeof allSettled,
-    CancelablePromise<[PromiseSettledResult<string>, PromiseSettledResult<1>]>
+    CancelablePromise<
+      [
+        CancelablePromiseSettledResult<string>,
+        CancelablePromiseSettledResult<1>,
+      ]
+    >
   >
 >();
 
@@ -202,6 +208,43 @@ fromPromise.cancel().onCancel(() => {});
 
 const typed = toCancelablePromise<number, number>(1);
 expectType<Equal<typeof typed, CancelablePromise<number>>>();
+
+// without type arguments the result is inferred from the source
+expectType<Equal<typeof fromPromise, CancelablePromise<number>>>();
+
+fromPromise.then((value) => {
+  expectType<Equal<typeof value, number>>();
+});
+
+const fromValue = toCancelablePromise('value');
+expectType<Equal<typeof fromValue, CancelablePromise<string>>>();
+
+const fromFunction = toCancelablePromise(() => Promise.resolve(true));
+expectType<Equal<typeof fromFunction, CancelablePromise<boolean>>>();
+
+const fromCancelable = toCancelablePromise(promise);
+expectType<Equal<typeof fromCancelable, CancelablePromise<string>>>();
+
+// ---- allSettled reports the canceled promises
+
+allSettled.then(([first]) => {
+  if (first.status === 'fulfilled') {
+    expectType<Equal<typeof first.value, string>>();
+  } else if (first.status === 'canceled') {
+    expectType<Equal<typeof first.reason, unknown>>();
+  } else {
+    expectType<Equal<typeof first.status, 'rejected'>>();
+  }
+
+  // @ts-expect-error the status is not one of the valid values
+  if (first.status === 'pending') return;
+});
+
+// ---- an async callback is accepted
+
+new CancelablePromise<string>(async (resolve) => {
+  resolve(await Promise.resolve('value'));
+});
 
 // ---- groupAsCancelablePromise
 

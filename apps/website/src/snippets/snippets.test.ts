@@ -33,7 +33,7 @@ import { mounted } from './signals/with-promise';
 import { dispose } from './signals/dispose';
 import { load as loadWithReasons, TimeoutError } from './typescript/reasons';
 import { sameClass } from './typescript/subpaths';
-import { countdown as countdownByHand } from './home/by-hand';
+
 import { CancelablePromise, defer, isCancelablePromise } from 'easy-cancelable-promise';
 
 /**
@@ -185,7 +185,7 @@ describe('documentation snippets', () => {
 
   describe('converting', () => {
     it('converts promises, values and functions', async () => {
-      expect(await convert()).toEqual({ values: [1, 2, 3, 4], sameInstance: true });
+      expect(await convert()).toEqual({ values: [1, 2, 3, 4], doubled: 2, sameInstance: true });
     });
 
     it('cannot stop the work of a native promise', async () => {
@@ -258,20 +258,6 @@ describe('documentation snippets', () => {
 
     it('shares one class between the entries of the package', () => {
       expect(sameClass).toBe(true);
-    });
-  });
-
-  describe('home', () => {
-    it('the version written by hand behaves like the library', async () => {
-      const cleanup = vi.fn();
-      const task = countdownByHand(5);
-
-      task.onCancel(cleanup);
-      task.cancel('No longer needed');
-
-      await expect(task.promise).rejects.toBe('No longer needed');
-      expect(task.getStatus()).toBe('canceled');
-      expect(cleanup).toHaveBeenCalledTimes(1);
     });
   });
 });

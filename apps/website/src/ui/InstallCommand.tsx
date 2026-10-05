@@ -12,7 +12,7 @@ interface InstallCommandProps {
   pkg?: string;
 }
 
-/** Terminal block plus package-manager tabs (reference `#install`). The choice is shared and remembered. */
+/** Terminal block plus package-manager tabs. The choice is shared and remembered. */
 export function InstallCommand({ pkg = 'easy-cancelable-promise' }: InstallCommandProps) {
   const packageManager = usePackageManager();
   const command = `${install[packageManager]} ${pkg}`;

@@ -24,13 +24,9 @@ import guards from '@snippets/convert/guards.ts?raw';
 | A function            | The function is called, and its result is converted       |
 | Any other value       | A cancelable promise already resolved with that value     |
 
-<CodeBlock code={convert} lang="ts" title="convert.ts" />
+<CodeBlock code={convert} lang="ts" title="to-cancelable.ts" />
 
-<Callout type="note" title="Pass both type arguments">
-  The first type argument is the type of what you pass, the second is the type of the result. Give both, as in
-  `toCancelablePromise<Promise<User>, User>(promise)`. With the inferred default, `await` gives the right type
-  but the value received by `then` is typed as a promise.
-</Callout>
+The type of the result is inferred from what you pass, so `then` and `await` receive the right type.
 
 ## What a wrapper can stop
 
@@ -44,7 +40,7 @@ awaits the wrapper stops waiting. The work behind the native promise still runs 
 To stop the work, create the `CancelablePromise` where the work starts, and connect `onCancel` to whatever can
 stop it. For `fetch` that is an `AbortController`.
 
-<CodeBlock code={wrapFetch} lang="ts" title="cancelableFetch.ts" />
+<CodeBlock code={wrapFetch} lang="ts" title="wrap-fetch.ts" />
 
 The same shape works for timers (`clearTimeout`), sockets (`close`), streams (`cancel`) and other libraries
 that accept an `AbortSignal`.

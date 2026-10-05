@@ -1,4 +1,4 @@
-/* Compound classes the reference reuses everywhere. `@utility` keeps them visible to Tailwind and the linter. */
+/* Compound classes the site reuses everywhere. `@utility` keeps them visible to Tailwind and the linter. */
 
 @utility icon {
   width: 18px;

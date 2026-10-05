@@ -22,7 +22,7 @@ type Variants = VariantProps<typeof button>;
 
 type ButtonLinkProps = ComponentPropsWithoutRef<'a'> & Variants & { icon?: IconName };
 
-/** A link styled as a button. `icon` adds the trailing reference glyph (arrow, external, ...). */
+/** A link styled as a button. `icon` adds the trailing glyph (arrow, external, ...). */
 export function ButtonLink({ variant, size, className, icon, children, ...props }: ButtonLinkProps) {
   return (
     <a className={button({ variant, size, className })} {...props}>

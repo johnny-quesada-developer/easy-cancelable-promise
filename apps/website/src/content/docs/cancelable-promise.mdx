@@ -28,7 +28,7 @@ Nothing else changes. It can be awaited, chained and passed to any code that exp
 
 The constructor takes the same callback as `Promise`, with a third parameter: the utilities of the promise.
 
-<CodeBlock code={constructor} lang="ts" title="utilities.ts" />
+<CodeBlock code={constructor} lang="ts" title="constructor.ts" />
 
 | Utility          | What it does                                                                |
 | ---------------- | --------------------------------------------------------------------------- |
@@ -80,10 +80,8 @@ An error thrown by the callback rejects the promise, same as a native `Promise`.
 
 <CodeBlock code={executorThrows} lang="ts" title="executor-throws.ts" />
 
-<Callout type="warning" title="An async callback is different">
-  The callback may be an `async` function, but an error thrown after its first `await` is not caught by the
-  promise. Wrap that code in `try` / `catch` and call `reject` yourself.
-</Callout>
+The callback may be an `async` function. An error it throws, also after an `await`, rejects the promise the same
+way.
 
 ## Chains
 

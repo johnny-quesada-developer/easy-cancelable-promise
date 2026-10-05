@@ -15,7 +15,7 @@ export function Panel({ tone, className, ...props }: PanelProps) {
   return <div className={panel({ tone, className })} {...props} />;
 }
 
-/** Reference `.panel-top`: the quiet header row of a panel. */
+/** The quiet header row of a panel. */
 export function PanelTop({ className, ...props }: ComponentPropsWithoutRef<'div'>) {
   return (
     <div
@@ -25,7 +25,7 @@ export function PanelTop({ className, ...props }: ComponentPropsWithoutRef<'div'
   );
 }
 
-/** Reference `.mini-node`: a small framed label, optionally accented green (state) or blue (scope). */
+/** A small framed label, optionally accented green (state) or blue (scope). */
 const miniNode = tv({
   base: 'flex items-center justify-between rounded-[6px] border border-[#dde5df] bg-paper px-[15px] py-3 font-mono text-11 whitespace-normal dark:border-line',
   variants: {

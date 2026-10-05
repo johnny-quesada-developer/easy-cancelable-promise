@@ -33,7 +33,7 @@ The claim of a cancelable function is that its work stops. Assert on that, not o
 Code that receives a promise is tested by giving it one. `defer` creates a promise the test resolves, rejects,
 cancels or reports progress on, at the moment it chooses.
 
-<CodeBlock code={deferredTest} lang="ts" title="describeRequest.test.ts" />
+<CodeBlock code={deferredTest} lang="ts" title="deferred.test.ts" />
 
 <Callout type="note" title="How this library is tested">
   The package runs its unit suite twice, against the source and against the built files, plus a strict

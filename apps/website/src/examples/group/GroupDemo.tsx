@@ -77,24 +77,29 @@ export function GroupDemo() {
     startClock();
     log.write(`started · ${TASKS} tasks, ${MAX_CONCURRENT} at a time`);
 
-    const update = (set: typeof setNative, index: number, changes: (task: Task) => Partial<Task>, stepRan = false) =>
+    // `afterStop` is decided when the step or the task runs, not when React applies the update:
+    // what ran right before Stop must not be counted as something that ran after it.
+    const update = (set: typeof setNative, index: number, changes: Partial<Task>, stepRan = false) => {
+      const afterStop = stepRan && stoppedAt.current !== null;
+
       set((current) => ({
         ...current,
-        afterStop: current.afterStop + (stepRan && stoppedAt.current !== null ? 1 : 0),
-        tasks: current.tasks.map((task, position) => (position === index ? { ...task, ...changes(task) } : task)),
+        afterStop: current.afterStop + (afterStop ? 1 : 0),
+        tasks: current.tasks.map((task, position) => (position === index ? { ...task, ...changes } : task)),
       }));
+    };
 
     const options = (set: typeof setNative, index: number) => ({
       from: index * STEPS_PER_TASK,
       steps: STEPS_PER_TASK,
       pause,
-      onStep: ({ step }: { step: number }) => update(set, index, () => ({ step, status: step === STEPS_PER_TASK ? 'done' : 'running' }), true),
+      onStep: ({ step }: { step: number }) => update(set, index, { step, status: step === STEPS_PER_TASK ? 'done' : 'running' }, true),
     });
 
     // native promises in a queue written by hand: Stop cannot reach the running tasks, nor the queue
     runInBatches(
       Array.from({ length: TASKS }, (_, index) => () => {
-        update(setNative, index, () => ({ status: 'running', startedAfterStop: stoppedAt.current !== null }));
+        update(setNative, index, { status: 'running', startedAfterStop: stoppedAt.current !== null });
 
         return searchWithNativePromise(options(setNative, index));
       }),
@@ -112,10 +117,10 @@ export function GroupDemo() {
     // one cancelable group: canceling it cancels the running tasks and never starts the queued ones
     group.current = groupAsCancelablePromise<number[]>(
       Array.from({ length: TASKS }, (_, index) => () => {
-        update(setCancelable, index, () => ({ status: 'running' }));
+        update(setCancelable, index, { status: 'running' });
 
         return searchWithCancelablePromise(options(setCancelable, index)).onCancel(() =>
-          update(setCancelable, index, () => ({ status: 'canceled' })),
+          update(setCancelable, index, { status: 'canceled' }),
         );
       }),
       { maxConcurrent: MAX_CONCURRENT },
@@ -170,7 +175,7 @@ export function GroupDemo() {
           ))}
         </ul>
         <dl className="demo-stats demo-stats--fixed">
-          <div className={`demo-stat ${side.status === 'canceled' ? 'demo-stat--good' : side.status === 'still running' || side.status === 'finished' ? 'demo-stat--bad' : ''}`}>
+          <div className={`demo-stat demo-stat--wide ${side.status === 'canceled' ? 'demo-stat--good' : side.status === 'still running' || side.status === 'finished' ? 'demo-stat--bad' : ''}`}>
             <dt>Status</dt>
             <dd data-testid={`${name}-status`}>{side.status}</dd>
           </div>
@@ -180,17 +185,17 @@ export function GroupDemo() {
               {amount(side, 'done')} / {TASKS}
             </dd>
           </div>
+          <div className="demo-stat">
+            <dt>Primes found</dt>
+            <dd data-testid={`${name}-total`}>{side.total === null ? '—' : count(side.total)}</dd>
+          </div>
           <div className={`demo-stat ${tone}`}>
-            <dt>Started after Stop</dt>
+            <dt>Tasks started after Stop</dt>
             <dd data-testid={`${name}-started-after-stop`}>{stopped ? startedAfterStop : '—'}</dd>
           </div>
           <div className={`demo-stat ${tone}`}>
             <dt>Steps after Stop</dt>
             <dd data-testid={`${name}-after-stop`}>{stopped ? side.afterStop : '—'}</dd>
-          </div>
-          <div className="demo-stat demo-stat--wide">
-            <dt>Primes found by the group</dt>
-            <dd data-testid={`${name}-total`}>{side.total === null ? '—' : count(side.total)}</dd>
           </div>
         </dl>
       </section>

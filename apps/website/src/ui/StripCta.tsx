@@ -7,7 +7,7 @@ interface StripCtaProps {
   className?: string;
 }
 
-/** Reference `.strip-cta`: framed closing prompt with one action. */
+/** Framed closing prompt with one action. */
 export function StripCta({ title, text, action, className }: StripCtaProps) {
   return (
     <div

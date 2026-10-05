@@ -51,3 +51,8 @@ export type CancelablePromiseCallback<TResult = unknown> = (
 
 // Callback for progress reporting.
 export type OnProgressCallback = (progress: number, metadata?: unknown) => void;
+
+// Outcome of a promise in CancelablePromise.allSettled: the native outcomes plus the canceled one.
+export type CancelablePromiseSettledResult<TResult> =
+  | PromiseSettledResult<TResult>
+  | { status: 'canceled'; reason: unknown };

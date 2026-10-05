@@ -135,7 +135,7 @@ export function ProgressDemo() {
               </div>
               <div className={`demo-stat ${native.firstFeedback === null ? '' : 'demo-stat--bad'}`}>
                 <dt>First feedback after</dt>
-                <dd data-testid="native-first-feedback">{native.firstFeedback === null ? (native.status === 'waiting' ? 'nothing yet' : '—') : milliseconds(native.firstFeedback)}</dd>
+                <dd data-testid="native-first-feedback">{native.firstFeedback === null ? (native.status === 'waiting' ? 'none yet' : '—') : milliseconds(native.firstFeedback)}</dd>
               </div>
               <div className="demo-stat">
                 <dt>Progress known</dt>
@@ -145,9 +145,9 @@ export function ProgressDemo() {
                 <dt>Primes found</dt>
                 <dd data-testid="native-found">{native.found === null ? (native.status === 'waiting' ? 'unknown' : '—') : count(native.found)}</dd>
               </div>
-              <div className={`demo-stat demo-stat--wide ${native.status === 'idle' ? '' : 'demo-stat--bad'}`}>
+              <div className="demo-stat demo-stat--wide">
                 <dt>Updates received through .then()</dt>
-                <dd data-testid="native-chained">{native.status === 'idle' ? '—' : 0}</dd>
+                <dd data-testid="native-chained">no onProgress to call</dd>
               </div>
             </dl>
           </section>

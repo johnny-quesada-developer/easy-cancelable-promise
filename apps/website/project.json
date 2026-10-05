@@ -145,6 +145,45 @@
         "command": "yarn test:visual:run",
         "cwd": "apps/website"
       }
+    },
+    "lint": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "yarn lint",
+        "cwd": "apps/website"
+      }
+    },
+    "validate": {
+      "executor": "nx:run-commands",
+      "//": "Runs after the validation of the library, against the dist that run just built. Never cached.",
+      "cache": false,
+      "dependsOn": [
+        {
+          "projects": [
+            "easy-cancelable-promise"
+          ],
+          "target": "validate"
+        }
+      ],
+      "options": {
+        "command": "yarn validate",
+        "cwd": "apps/website"
+      }
+    },
+    "test:debug": {
+      "executor": "nx:run-commands",
+      "dependsOn": [
+        {
+          "projects": [
+            "easy-cancelable-promise"
+          ],
+          "target": "build"
+        }
+      ],
+      "options": {
+        "command": "yarn test:debug",
+        "cwd": "apps/website"
+      }
     }
   },
   "implicitDependencies": [

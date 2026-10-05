@@ -8,7 +8,7 @@ thumb: group
 outcome: A group is one promise. Canceling it cancels the tasks that run and never starts the ones that wait.
 points:
   - Press Start both, then Stop both while the first tasks run. The cancelable group marks its running tasks as canceled and the rest as never started.
-  - Look at Started after Stop on the native side. The queue keeps starting tasks, because nothing can reach it.
+  - Look at Tasks started after Stop on the native side. The queue keeps starting tasks, because nothing can reach it.
   - Run it to the end. Both find the same primes, and the group returns them in the order of the tasks.
 sources:
   - file: group/GroupDemo.tsx

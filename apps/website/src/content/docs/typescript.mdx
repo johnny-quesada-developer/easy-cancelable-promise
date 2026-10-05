@@ -25,7 +25,7 @@ The package ships its declarations. There is nothing to install from `@types`.
 | `new CancelablePromise<T>(callback)`    | `T`: the result. Default `void`                            |
 | `defer<T>()`                            | `T`: the result                                            |
 | `groupAsCancelablePromise<T>(tasks)`    | `T`: the array of results, for example `User[]`            |
-| `toCancelablePromise<S, T>(source)`     | `S`: what you pass. `T`: the result. Give both             |
+| `toCancelablePromise(source)`           | Inferred from the source. `<S, T>` sets both by hand       |
 | `isCancelablePromise<T>(value)`         | `T`: the result of the promise the value is narrowed to    |
 
 ## Reasons are unknown
@@ -51,6 +51,7 @@ of `then` receive `unknown`. Narrow it before use.
 | `Subscription`                    | The function that removes a listener                                |
 | `SubscriptionParams`              | The options of `onCancel` and `onProgress`: `{ signal }`            |
 | `DeferredPromise<T>`              | What `defer` returns                                                |
+| `CancelablePromiseSettledResult<T>` | One outcome of `allSettled`: fulfilled, rejected or canceled      |
 | `CancelablePromiseGroupConfig`    | The configuration of `groupAsCancelablePromise`                     |
 | `CancelablePromiseBuildCallback<T>` | A task of a group: a function that returns a promise              |
 | `CancelableAbortSignal`           | The signal of a `CancelableAbortController`                         |

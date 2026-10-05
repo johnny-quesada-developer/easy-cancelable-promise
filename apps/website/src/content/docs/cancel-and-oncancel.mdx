@@ -26,7 +26,7 @@ without an `onCancel` listener is still canceled, but whatever it started keeps 
 
 Register the cleanup in the callback, next to the thing that needs it.
 
-<CodeBlock code={inside} lang="ts" title="openSocket.ts" />
+<CodeBlock code={inside} lang="ts" title="on-cancel-inside.ts" />
 
 Whoever cancels the promise does not need to know there is a socket. That is the point: the knowledge of how to
 stop the work stays with the code that started it.
@@ -36,7 +36,7 @@ stop the work stays with the code that started it.
 `onCancel` is also a method of the promise. It returns the promise, so listeners can be chained. The listeners
 registered inside the callback run first.
 
-<CodeBlock code={outside} lang="ts" title="listeners.ts" />
+<CodeBlock code={outside} lang="ts" title="on-cancel-outside.ts" />
 
 ## The reason
 
@@ -48,7 +48,7 @@ registered inside the callback run first.
 
 For `await` and `catch` a canceled promise is a rejected promise. Read `status` to know which one it was.
 
-<CodeBlock code={handle} lang="ts" title="load.ts" />
+<CodeBlock code={handle} lang="ts" title="handle.ts" />
 
 ## No unhandled rejection
 
@@ -70,7 +70,7 @@ the temporary file while it saves. See [Abort signals](../abort-signals/) for th
 
 The utilities include `cancel`, so a promise can give up by itself.
 
-<CodeBlock code={selfCancel} lang="ts" title="withTimeout.ts" />
+<CodeBlock code={selfCancel} lang="ts" title="self-cancel.ts" />
 
 ## When a listener throws
 

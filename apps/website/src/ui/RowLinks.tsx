@@ -1,7 +1,7 @@
 import type { ComponentPropsWithoutRef, ReactNode } from 'react';
 import { Icon } from './Icon';
 
-/** Reference `.row-links`: a ruled row of equal columns; each item is a tall link with an arrow. */
+/** A ruled row of equal columns; each item is a tall link with an arrow. */
 export function RowLinks({ className, ...props }: ComponentPropsWithoutRef<'div'>) {
   return (
     <div

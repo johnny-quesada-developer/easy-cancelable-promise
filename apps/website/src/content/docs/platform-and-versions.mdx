@@ -47,6 +47,7 @@ as documented.
 | Every entry shares one class                              | `instanceof` now works between entries. Nothing to do                   |
 | `resolve(promise)` keeps the status `pending`             | The status follows the promise you passed, and it can still be canceled |
 | A callback that throws rejects the promise                | Before, the constructor threw. Move the `try` / `catch` to the promise  |
+| `allSettled` results are `CancelablePromiseSettledResult` | A variable typed `PromiseSettledResult` needs the new type              |
 | `groupAsCancelablePromise` keeps the order of the tasks   | Results were in completion order. Stop sorting them                     |
 | `executeInOrder` runs one task at a time                  | Before, the tasks of a batch started together                           |
 
@@ -61,6 +62,9 @@ as documented.
 - `resolve` and `reject` after the promise settled are ignored, and the status no longer changes.
 - A cancel listener that throws no longer leaves the promise pending.
 - `isCancelablePromise` recognizes promises created by another copy of the package.
+- An error thrown by an `async` callback rejects the promise. Before, the promise stayed pending.
+- `toCancelablePromise` infers the type of its result. Before, `then` received a value typed as a promise.
+- The results of `allSettled` include the status `'canceled'` in their type, `CancelablePromiseSettledResult`.
 
 ## Related
 

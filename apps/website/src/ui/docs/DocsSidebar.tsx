@@ -20,7 +20,7 @@ interface DocsSidebarProps {
   drawer?: boolean;
 }
 
-/** Grouped article navigation with the documented version (reference `.docs-side`). */
+/** Grouped article navigation with the documented version. */
 export function DocsSidebar({ sections, currentId, drawer = false }: DocsSidebarProps) {
   return (
     <>

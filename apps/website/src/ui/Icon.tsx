@@ -1,6 +1,6 @@
 import type { ComponentPropsWithoutRef } from 'react';
 
-/** The reference icon set: single-path, stroked, 24px viewBox. */
+/** The icon set: single-path, stroked, 24px viewBox. */
 export const ICONS = {
   arrow: 'M4 12h15m-6-6 6 6-6 6',
   'up-right': 'M6 18 18 6M6 6h12v12',

@@ -126,6 +126,55 @@ describe('CancelablePromise settle rules', () => {
     expect(await promise).toBe('result');
   });
 
+  it('should reject the promise when an async callback throws', async () => {
+    const error = new Error('callback error');
+
+    const promise = new CancelablePromise<string>(async () => {
+      await Promise.resolve();
+
+      throw error;
+    });
+
+    expect(promise.status).toBe('pending');
+    await expect(promise).rejects.toBe(error);
+    expect(promise.status).toBe('rejected');
+  });
+
+  it('should ignore an error of an async callback after the promise was settled', async () => {
+    const resolved = new CancelablePromise<string>(async (resolve) => {
+      resolve('result');
+
+      await Promise.resolve();
+
+      throw new Error('callback error');
+    });
+
+    const canceled = new CancelablePromise<string>(async () => {
+      await nextTick();
+
+      throw new Error('callback error');
+    });
+
+    canceled.cancel('reason');
+
+    await nextTick();
+    await nextTick();
+
+    expect(await resolved).toBe('result');
+    expect(resolved.status).toBe('resolved');
+    expect(canceled.status).toBe('canceled');
+    await expect(canceled).rejects.toBe('reason');
+  });
+
+  it('should resolve from an async callback', async () => {
+    const promise = new CancelablePromise<string>(async (resolve) => {
+      resolve(await Promise.resolve('result'));
+    });
+
+    expect(await promise).toBe('result');
+    expect(promise.status).toBe('resolved');
+  });
+
   it('should cancel the promise even if a cancel callback throws', async () => {
     const error = new Error('listener error');
     const ownLogger = vi.fn();
@@ -184,6 +233,20 @@ describe('CancelablePromise statics with special collections', () => {
     expect(await CancelablePromise.all([repeated, slow, repeated, 3])).toEqual([
       1, 2, 1, 3,
     ]);
+  });
+
+  it('allSettled should report the canceled promises with their own status', async () => {
+    const canceled = new CancelablePromise<string>(() => {});
+
+    canceled.cancel('reason');
+
+    const [first, second] = await CancelablePromise.allSettled([
+      canceled,
+      CancelablePromise.reject('error'),
+    ]);
+
+    expect(first).toEqual({ status: 'canceled', reason: 'reason' });
+    expect(second).toEqual({ status: 'rejected', reason: 'error' });
   });
 
   it('allSettled should keep a result for each value when a promise is repeated', async () => {

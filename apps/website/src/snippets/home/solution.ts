@@ -6,9 +6,11 @@ const fetchUser = new CancelablePromise(
 
     onCancel(() => controller.abort());
 
-    const response = await fetch('/api/user', { signal: controller.signal });
+    const user = await fetch('/api/user', { signal: controller.signal }).then(
+      (res) => res.json(),
+    );
 
-    resolve(await response.json());
+    resolve(user);
   },
 );
 

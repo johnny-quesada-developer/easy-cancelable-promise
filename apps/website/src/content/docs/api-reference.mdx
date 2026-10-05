@@ -55,7 +55,7 @@ The callback receives `resolve`, `reject` and the utilities.
 | `utils.isPending()`                   | `boolean`               | `true` while the promise is not settled         |
 | `utils.isCanceled()`                  | `boolean`               | `true` after the promise was canceled           |
 
-An error thrown by the callback rejects the promise.
+An error thrown by the callback rejects the promise, also when the callback is `async`.
 
 ### Instance members
 
@@ -79,7 +79,7 @@ the promise is canceled.
 | Method                                 | Returns                                                                |
 | -------------------------------------- | ---------------------------------------------------------------------- |
 | `CancelablePromise.all(values)`        | A promise of every result, in the order of the values                  |
-| `CancelablePromise.allSettled(values)` | A promise of the outcome of every value. A canceled one has the status `'canceled'` |
+| `CancelablePromise.allSettled(values)` | A promise of a `CancelablePromiseSettledResult` for every value         |
 | `CancelablePromise.race(values)`       | A promise that settles with the first value to settle                  |
 | `CancelablePromise.resolve(value?)`    | A resolved promise                                                     |
 | `CancelablePromise.reject(reason?)`    | A rejected promise                                                     |
@@ -134,7 +134,7 @@ rejects when a source is rejected, and cancels the pending sources when it is ca
 import { toCancelablePromise } from 'easy-cancelable-promise';
 ```
 
-`toCancelablePromise<S, T>(source)` returns a `CancelablePromise<T>`.
+`toCancelablePromise(source)` returns a `CancelablePromise` of the result of the source. The type is inferred.
 
 | `source`              | Result                                                |
 | --------------------- | ----------------------------------------------------- |
@@ -204,6 +204,7 @@ import type {
   Subscription,
   SubscriptionParams,
   DeferredPromise,
+  CancelablePromiseSettledResult,
   CancelablePromiseGroupConfig,
   CancelablePromiseBuildCallback,
   CancelableAbortSignal,
@@ -223,6 +224,7 @@ import type {
 | `Subscription`                      | `() => void`                                                            |
 | `SubscriptionParams`                | `{ signal?: CancelableAbortSignal \| AbortSignal }`                     |
 | `DeferredPromise<T>`                | `{ promise, resolve, reject }` and the utilities                        |
+| `CancelablePromiseSettledResult<T>` | `PromiseSettledResult<T> \| { status: 'canceled'; reason: unknown }`    |
 | `CancelablePromiseGroupConfig`      | The options of `groupAsCancelablePromise`                               |
 | `CancelablePromiseBuildCallback<T>` | `() => Promise<T> \| CancelablePromise<T>`                              |
 | `CancelableAbortSignal`             | `AbortSignal` with `subscribe`                                          |

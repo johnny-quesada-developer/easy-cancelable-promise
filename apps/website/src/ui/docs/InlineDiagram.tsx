@@ -11,7 +11,7 @@ interface FlowDiagramProps {
   caption: string;
 }
 
-/** A left-to-right flow of framed labels (reference `.doc-diagram .flow-inline`). */
+/** A left-to-right flow of framed labels. */
 export function FlowDiagram({ nodes, caption }: FlowDiagramProps) {
   return (
     <div className="doc-diagram">
@@ -36,7 +36,7 @@ interface PairDiagramProps {
   caption: string;
 }
 
-/** Two independent instances side by side (reference scoped-state diagram). */
+/** Two independent instances side by side. */
 export function PairDiagram({ left, right, caption }: PairDiagramProps) {
   return (
     <div className="doc-diagram">

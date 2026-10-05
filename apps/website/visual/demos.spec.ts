@@ -85,7 +85,7 @@ test.describe('live examples', () => {
     // while it runs: the CancelablePromise reports, the native promise has said nothing
     await expect.poll(() => number(page, 'cancelable-updates')).toBeGreaterThan(2);
     await expect(page.getByTestId('native-updates')).toHaveText('0');
-    await expect(page.getByTestId('native-first-feedback')).toHaveText('nothing yet');
+    await expect(page.getByTestId('native-first-feedback')).toHaveText('none yet');
     await expect(page.getByTestId('native-progress')).toHaveText('unknown');
     await expect(page.getByTestId('cancelable-progress')).not.toHaveText('0%');
 

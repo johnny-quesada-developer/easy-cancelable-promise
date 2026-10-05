@@ -48,6 +48,9 @@ jobs:
       - name: Install dependencies
         run: yarn install --frozen-lockfile --ignore-scripts
 
+      - name: Lint
+        run: yarn nx run website:lint
+
       - name: Test
         run: yarn nx run website:test
 
