@@ -34,7 +34,7 @@ _Promises you can actually control._ ✨
 
 You're fetching user data, but the user navigated away. Your fetch continues anyway. Memory leak. Wasted bandwidth. Potential race conditions.
 
-**Native promises have no built-in cancel method or status accessor.** Stopping the underlying work requires cooperation, such as aborting a fetch with `AbortController`.
+**Native promises have no built-in cancel method or status accessor.** Stopping the underlying work requires cooperation, such as aborting a fetch with AbortController.
 
 ## 💡 The Solution
 

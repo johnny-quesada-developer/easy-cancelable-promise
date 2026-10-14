@@ -98,7 +98,7 @@ const codeFrame = 'min-w-0 [&_.code-block]:m-0';
       Promises you can actually control.
     </p>
     <p class="mx-auto mt-[14px] mb-0 max-w-[620px] text-13 leading-[1.8] text-[#6f796f] dark:text-muted max-lg:max-w-[540px] max-sm:max-w-[360px] max-sm:text-12">
-      Native promises can't be canceled. Their status can't be tracked. Once started, they run to completion. Always.
+      Native promises have no built-in cancel method or status accessor. Stopping the underlying work requires cooperation, such as aborting a fetch with AbortController.
     </p>
     <div class="mt-[26px] flex flex-wrap items-center justify-center gap-3 max-sm:mt-[22px] max-sm:gap-[9px]">
       <ButtonLink variant="primary" icon="arrow" className="min-h-12 px-[22px] text-14 max-sm:min-h-[45px] max-sm:px-[14px] max-sm:text-12" href={gettingStarted}>Start building</ButtonLink>

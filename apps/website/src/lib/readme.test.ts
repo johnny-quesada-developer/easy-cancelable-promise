@@ -28,7 +28,7 @@ describe('the README and the site show the same code', () => {
     for (const sentence of [
       "The cancelable promise you didn't know you needed.",
       "Promises you can actually control.",
-      "Native promises can't be canceled. Their status can't be tracked. Once started, they run to completion. Always.",
+      "Native promises have no built-in cancel method or status accessor. Stopping the underlying work requires cooperation, such as aborting a fetch with AbortController.",
     ]) {
       expect(text, `README: ${sentence}`).toContain(sentence);
       expect(page, `home page: ${sentence}`).toContain(sentence);
