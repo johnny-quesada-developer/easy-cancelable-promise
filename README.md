@@ -22,11 +22,19 @@ _Promises you can actually control._ ✨
 
 ---
 
+## Find a guide by task
+
+- [Get started with cancelable promises](https://johnny-quesada-developer.github.io/easy-cancelable-promise/docs/getting-started/)
+- [Wrap native promises and understand cancellation limits](https://johnny-quesada-developer.github.io/easy-cancelable-promise/docs/converting-native-promises/)
+- [Limit concurrency and cancel a group of tasks](https://johnny-quesada-developer.github.io/easy-cancelable-promise/docs/groups-and-concurrency/)
+- [Report progress through a promise chain](https://johnny-quesada-developer.github.io/easy-cancelable-promise/docs/progress-reporting/)
+- [Compare native promises with cancellation and cleanup](https://johnny-quesada-developer.github.io/easy-cancelable-promise/examples/stop-the-work/)
+
 ## 🎯 The Problem
 
 You're fetching user data, but the user navigated away. Your fetch continues anyway. Memory leak. Wasted bandwidth. Potential race conditions.
 
-**Native promises can't be canceled. Their status can't be tracked.** Once started, they run to completion. Always.
+**Native promises have no built-in cancel method or status accessor.** Stopping the underlying work requires cooperation, such as aborting a fetch with `AbortController`.
 
 ## 💡 The Solution
 
